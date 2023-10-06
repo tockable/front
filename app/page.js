@@ -23,7 +23,7 @@ export default function page() {
   const firstWord = [
     <span className="text-tock-green">tock</span>,
     <div className={`text-tock-orange text-4xl ${ub.className}`}>
-      &#123; _parameterized &#125;
+      &#123; _parameterize &#125;
     </div>,
     <span className={`text-white font-bold ${dela.className}`}>choose</span>,
     <span className={`text-blue-400 font-bold ${anton.className}`}>
@@ -34,7 +34,6 @@ export default function page() {
       <span className="text-blue-600">i</span>
       <span className="text-green-600">z</span>
       <span className="text-red-600">e</span>
-      <span className="text-yellow-300">d</span>
     </span>,
     <span className={`text-yellow-200 font-bold bg-red-600 ${dela.className}`}>
       RULE
