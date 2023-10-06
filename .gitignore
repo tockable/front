@@ -33,3 +33,22 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+
+# dev
+(launchpad)
+contract
+contract-test
+test
+launchpad
+dashboard
+contract-deployment
+database/projects
+database/publishedProject
+model.json
+utils
+api/compile
+api/crypto
+api/ipfs
+api/projects
+constants

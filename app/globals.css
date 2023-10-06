@@ -2,10 +2,16 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --foreground-rgb: 0, 0, 0;
-  --background-start-rgb: 214, 219, 220;
-  --background-end-rgb: 255, 255, 255;
+@layer base {
+  :root {
+    --blue: #e3f8fb;
+    --orange: #ed9f66;
+    --green: #41f79a;
+    --darkgreen: #86ffc7;
+    --red: #ef6a7d;
+    --black: #231f20;
+    --semiblack: #2b2b2e;
+  }
 }
 
 @media (prefers-color-scheme: dark) {
@@ -18,10 +24,17 @@
 
 body {
   color: rgb(var(--foreground-rgb));
-  background: linear-gradient(
+  background: var(--black);
+  /* background: linear-gradient(
       to bottom,
       transparent,
       rgb(var(--background-end-rgb))
     )
-    rgb(var(--background-start-rgb));
+    rgb(var(--background-start-rgb)); */
+}
+#banner {
+  height: 100vh;
+  background: url(../svgs/dbmgradient.svg);
+  background-position: center center;
+  background-size: cover;
 }
