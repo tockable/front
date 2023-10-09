@@ -29,7 +29,7 @@ export default function Navbar({ resultRefs }) {
   }
   return (
     <div>
-      <div className="z-10 flex h-[3rem] w-[3rem] justify-items-start fixed top-16 sm:left-[2rem] md:top-2 xs:left-[1.5rem] xss:left-[1rem] rounded-xl">
+      <div className="z-10 flex h-[3rem] w-[3rem] justify-items-start fixed top-16 sm:left-[2rem] md:top-2 xs:left-[1.5rem] xxs:top-24 xxs:left-[1rem] rounded-xl">
         <svg className="rounded-xl">
           <TockableLogo />
         </svg>
