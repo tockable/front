@@ -61,7 +61,7 @@ export default function Navbar({ resultRefs }) {
           )}
 
           <button
-            className="mx-1 text-center transition ease-in-out hover:bg-tock-darkgreen duration-300 bg-tock-green text-tock-semiblack font-bold py-2 px-4 rounded-xl focus:outline-none focus:shadow-outline active:text-white flex-auto"
+            className="mx-1 text-center transition ease-in-out xxs:h-16 hover:bg-tock-darkgreen duration-300 bg-tock-green text-tock-semiblack font-bold py-2 px-4 rounded-xl focus:outline-none focus:shadow-outline active:text-white flex-auto xs:h-10"
             onClick={scrollToWaitlist}
           >
             Join Waitlist

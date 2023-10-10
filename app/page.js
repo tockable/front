@@ -142,9 +142,12 @@ export default function page() {
       {/* className="flex w-screen min-h-screen flex-col items-center gap-6 mt-8" */}
 
       <NavbarHome resultRefs={resultRefs} />
-      <div id="banner" className="h-screen mt-20">
-        <div className="pt-[30vh] md:[45vh] md:px-20 flex flex-col md:flex-row">
-          <div className="min-w-max md:w-full mb-10 md:mb-0">
+      <div id="banner" className="h-screen mt-20" /* flex justify-center"*/>
+        {/* <div className="flex items-center justify-center w-11/12 md:w-3/4 lg:w-1/2"> */}
+        <div
+          className="pt-[10vh] md:pt-[25vh] md:px-20 flex flex-col md:flex-row" /*md:gap-[10vw]*/
+        >
+          <div className="min-w-max md:w-full mb-10 md:mb-0 md:ml-24 2xl:ml-96 lg:ml-52">
             <p className="font-bold text-6xl text-center md:text-start h-[4rem]">
               {/* {firstWord[tock]} */}
               <Tock />
@@ -157,7 +160,7 @@ export default function page() {
             </p>
           </div>
 
-          <div className="flex flex-col grow justify-center">
+          <div className="flex flex-col grow justify-center 2xl:mr-80 lg:mr-52">
             <div className="flex justify-center select-none">
               <button
                 className="mt-1 mb-1 border border-zinc-500 transition ease-in-out mx-4 hover:bg-zinc-600 duration-300 bg-tock-black text-zinc-400 font-bold py-2 px-4 rounded-2xl focus:outline-none focus:shadow-outline active:text-white"
@@ -214,10 +217,12 @@ export default function page() {
             </div>
           </div>
         </div>
+        {/* </div> */}
+        <h1 className="h-32 mt-24 lg:mt-64 text-zinc-300 text-2xl text-center">
+          Unlocking onchain possibilities for Web3 & NFT enthusiasts.
+        </h1>
       </div>
-      <h1 className="h-32 mt-10 text-zinc-300 text-2xl text-center">
-        Unlocking onchain possibilities for Web3 & NFT enthusiasts.
-      </h1>
+
       <div ref={addToRef}>
         <Register />
       </div>
