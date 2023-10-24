@@ -2,8 +2,8 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import DiscordSvg from "@/svgs/social-svgs/DiscordSvg";
 import TwitterSvg from "@/svgs/social-svgs/TwitterSvg";
-import MirrorSvg from "@/svgs/social-svgs/MirrorSbg";
-import { getArgs } from "@/api/admin/admin";
+import MirrorSvg from "@/svgs/social-svgs/MirrorSvg";
+import { getArgs } from "@/api/admins/admin";
 export default function Socialbar() {
   const [twitter, setTwitter] = useState("#");
   const [discord, setDiscord] = useState("#");

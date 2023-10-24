@@ -11,6 +11,13 @@
     --red: #ef6a7d;
     --black: #231f20;
     --semiblack: #2b2b2e;
+
+    /* --rti-border: "#ccc" !important; */
+    /* --rti-main: "red" !important; */
+    /* --rti-radius: "1rem"; */
+    /* --rti-s: "0.5rem",  */
+    /* --rti-tag: "#e4e4e7" !important; */
+    /* --rti-tag-remove: "red" !important;  */
   }
 }
 
@@ -37,4 +44,47 @@ body {
   background: url(../svgs/dbmgradient.svg);
   background-position: center center;
   background-size: cover;
+}
+
+.rti--container {
+  border-radius: 0.75rem !important;
+  background: #3f3f46 !important;
+  border: none !important;
+  overflow: auto;
+  min-height: 2.5rem;
+  max-height: 20rem;
+
+  /* background-color: 'red' !important; */
+  /* --rti-bg: "#fafafa" !important */
+  /* --rti-border: "#ccc" !important; */
+  /* --rti-main: "red" !important; */
+  /* --rti-radius: "1rem"; */
+  /* --rti-s: "0.5rem",  */
+  /* --rti-tag: "#e4e4e7" !important; */
+  /* --rti-tag-remove: "red" !important;  */
+}
+
+.rti--container input {
+  background-color: #3f3f46;
+  color: #e4e4e7;
+  font-size: smaller;
+}
+
+.rti--container:focus-visible {
+  background-color: red;
+}
+
+.rti--tag {
+  background-color: #262626 !important;
+  color: #a1a1aa;
+  font-size: smaller;
+}
+
+::-webkit-scrollbar {
+  width: 0.25rem;
+  height: 0.25rem;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--orange);
 }

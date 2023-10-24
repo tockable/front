@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { useState, useEffect } from "react";
 import TockableLogo from "@/svgs/logo";
-import { getArgs } from "@/api/admin/admin";
+import { getArgs } from "@/api/admins/admin";
 export default function Navbar({ resultRefs }) {
   const [mission, setMission] = useState(null);
   useEffect(() => {

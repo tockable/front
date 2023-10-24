@@ -4,7 +4,7 @@ import Navbar from "@/components/design/navbar/nabvar";
 import Socialbar from "../design/social-bar/socialbar";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { useAccount } from "wagmi";
-import getStatus from "@/api/waitlist/status";
+import getStatus from "@/api/wait-list/status";
 import { BASEURL } from "@/tock.config";
 import Fade from "@/components/design/fade/fade";
 

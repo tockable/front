@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { getArgs } from "@/api/admin/admin";
+import { getArgs } from "@/api/admins/admin";
 import { BASEURL } from "@/tock.config";
 import TockableLogo from "@/svgs/logo";
 export default function Navbar() {

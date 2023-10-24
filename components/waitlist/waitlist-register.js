@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import CopyToClipboard from "react-copy-to-clipboard";
 import { BASEURL } from "@/tock.config";
-import addToRegistery from "@/api/waitlist/regsitery";
+import addToRegistery from "@/api/wait-list/regsitery";
 import Fade from "@/components/design/fade/fade";
 
 export default function Register() {

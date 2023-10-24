@@ -1,4 +1,3 @@
-
 "use client";
 import "@rainbow-me/rainbowkit/styles.css";
 import {
@@ -11,30 +10,23 @@ import {
   mainnet,
   polygon,
   optimism,
-  arbitrum,
-  arbitrumGoerli,
   base,
   zora,
   polygonMumbai,
   baseGoerli,
-  optimismGoerli,
 } from "wagmi/chains";
 import { publicProvider } from "wagmi/providers/public";
 import { useState, useEffect } from "react";
-import Components from "./components/components";
 
 const { chains, publicClient } = configureChains(
   [
     mainnet,
     polygon,
     optimism,
-    arbitrum,
     base,
     zora,
     polygonMumbai,
-    arbitrumGoerli,
     baseGoerli,
-    optimismGoerli,
   ],
   [publicProvider()]
 );
@@ -51,7 +43,7 @@ const wagmiConfig = createConfig({
   publicClient,
 });
 
-export default function Page() {
+export default function Page({ params }) {
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
   return (
@@ -70,9 +62,8 @@ export default function Page() {
         }}
         chains={chains}
       >
-        {mounted && <Components/>}
+        {mounted && <LaunchpadLanding params={params} />}
       </RainbowKitProvider>
     </WagmiConfig>
   );
 }
-

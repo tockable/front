@@ -36,19 +36,13 @@ next-env.d.ts
 
 
 # dev
-(launchpad)
-contract
-contract-test
+*.test
 test
-launchpad
-dashboard
-contract-deployment
-database/projects
-database/publishedProject
+tests
+database/projects.test
 model.json
-utils
-api/compile
-api/crypto
-api/ipfs
-api/projects
-constants
+api/*
+test2.js
+waitlists
+a.json
+
