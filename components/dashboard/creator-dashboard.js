@@ -1,27 +1,39 @@
+// const { data, isError, isLoading, isSuccess, signMessage } = useSignMessage({
+//   message:
+//     "By signing this message from tockable.xyz, we make sure that no one is using your dashboard instead of you.",
+//   onSuccess(data) {
+//     console.log(data);
+//     setVerifiedAddress(address);
+//   },
+// });
+
 import { useState, useEffect } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
-import { useSignMessage } from "wagmi";
-import { useAccount } from "wagmi";
-import { fetchAllProjectsByWallet } from "@/api/projects/projects";
+import { useAccount, useDisconnect } from "wagmi";
+import { signOut } from "next-auth/react";
+import { useSession } from "next-auth/react";
+import { fetchAllProjectsByWallet } from "@/actions/launchpad/dashboard";
 import NewProjectModal from "./modal-new-project";
 import ProjectPreview from "./project-preview";
 import Button from "../design/button/button";
+import Loading from "../loading/loading";
+
+import NavbarLaunchpad from "../design/navbar/navvar-launchpad";
 
 export default function CreatorDashboard() {
+  const session = useSession();
+  const router = useRouter();
+
   const { address, isConnected } = useAccount();
-  const { data, isError, isLoading, isSuccess, signMessage } = useSignMessage({
-    message:
-      "By signing this message from tockable.xyz, we make sure that no one is using your dashboard instead of you.",
-    onSuccess(data) {
-      console.log(data);
-      setVerifiedAddress(address);
-    },
-  });
+  const { disconnectAsync } = useDisconnect();
 
   const [projects, setProjects] = useState([]);
   const [isVerified, setVerified] = useState(false);
   const [verifiedAddress, setVerifiedAddress] = useState(null);
   const [newPojectModalShow, setNewProjectModelShow] = useState(false);
+  const [sessionStatus, setSessionStatus] = useState(null);
 
   useEffect(() => {
     if (!verifiedAddress) return;
@@ -29,13 +41,22 @@ export default function CreatorDashboard() {
   }, [verifiedAddress]);
 
   useEffect(() => {
-    if (!isVerified) return;
+    if (!sessionStatus) return;
+    if (!session.data) {
+      localStorage.setItem("tock", "/dashboard");
+      router.push("/auth");
+    }
+  }, [sessionStatus]);
+
+  useEffect(() => {
+    if (session.status === "loading") return;
+    setSessionStatus(session.status);
+  }, [session.status]);
+
+  useEffect(() => {
     fetchAllProjectsByWallet(address).then((res) => {
-      if (res.success === true) {
-        setProjects(res.payload);
-      } else if (res.success === false) {
-        setProjects([]);
-      }
+      if (res.success === true) setProjects(res.payload);
+      else if (res.success === false) setProjects([]);
     });
   }, [isVerified]);
 
@@ -46,54 +67,48 @@ export default function CreatorDashboard() {
     }
   }, [isConnected]);
 
+  function handleShowNewProjectModal() {
+    setNewProjectModelShow(true);
+  }
+
   function handleCloseNewProjectModal() {
     setNewProjectModelShow(false);
   }
 
+  async function handleSignout() {
+    disconnectAsync();
+    signOut({ callbackUrl: "/" });
+  }
+
+  if (!isConnected)
+    return <Loading isLoading={!isConnected} size={30} variant="page" />;
+
   return (
     <div className="relative top-24">
+      <NavbarLaunchpad />
+
       <div className="flex justify-center items-center">
         <div className="basis-11/12 md:basis-3/4 lg:basis-5/6">
-          {!isVerified && (
-            <div className="bg-tock-semiblack rounded-2xl px-8 pt-6 pb-8 mb-4">
-              <h1 className="mb-10 border-b border-tock-green text-xl font-bold text-tock-green">
-                Login to dashboard
-              </h1>
-              {!isConnected && (
-                <div>
-                  <p className="text-zinc-200 text-sm">
-                    Please Login with your wallet.
-                  </p>
-                  <div className="flex justify-center mt-8 mb-16">
-                    <ConnectButton showBalance={false} chainStatus="none" />
-                  </div>
-                </div>
-              )}
-              {isConnected && !verifiedAddress && (
-                <div>
-                  <p className="text-zinc-200 text-sm">
-                    please sign to continue
-                  </p>
-
-                  <div className="flex justify-center mt-8">
-                    <Button
-                      variant="primary"
-                      disabled={isLoading || !isConnected}
-                      onClick={() => signMessage()}
-                    >
-                      Sign
-                    </Button>
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
-
-          {isVerified && (
-            <div>
+          <nav className="flex justify-center items-center px-2 py-8 mb-4 rounded-xl xxs:h-20 xs:h-12 bg-tock-semiblack border border-tock-black">
+            <Link href={"/"}>
+              <button className="p-8 mx-1 text-center transition ease-in-out hover:bg-tock-black duration-300 text-gray-300 font-bold py-2 px-4 rounded-xl focus:outline-none focus:shadow-outline active:text-white flex-auto">
+                Home
+              </button>
+            </Link>
+            <ConnectButton chainStatus={"icon"} showBalance={false} />
+            {isConnected && (
               <div>
-                <ConnectButton showBalance={false} chainStatus="none" />
+                <button
+                  onClick={() => handleSignout()}
+                  className="p-8 mx-1 text-center transition ease-in-out duration-300 text-gray-500 hover:text-tock-red font-bold py-2 px-4 focus:outline-none focus:shadow-outline active:text-tock-red flex-auto"
+                >
+                  sign out
+                </button>
               </div>
+            )}
+          </nav>
+          {session.data && (
+            <div>
               <div className="bg-tock-semiblack rounded-2xl px-8 pt-6 pb-8 mb-4">
                 <h1 className="mb-2 text-xl font-bold text-tock-green">
                   New project
@@ -104,14 +119,13 @@ export default function CreatorDashboard() {
                     : "Time to launch another project?"}
                 </p>
                 <div className="flex justify-center mt-12">
-                  <button
-                    className="transition ease-in-out mr-4 hover:bg-tock-darkgreen duration-300 bg-tock-green text-tock-semiblack font-bold py-2 px-4 rounded-2xl focus:outline-none focus:shadow-outline active:text-white"
+                  <Button
+                    variant="primary"
                     type="button"
-                    // disabled={submitting}
-                    onClick={() => setNewProjectModelShow(true)}
+                    onClick={handleShowNewProjectModal}
                   >
                     + Launch new project
-                  </button>
+                  </Button>
                   <div>
                     <NewProjectModal
                       isOpen={newPojectModalShow}

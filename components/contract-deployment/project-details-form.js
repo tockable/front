@@ -5,12 +5,16 @@ import { useAccount } from "wagmi";
 import { IPFS_GATEWAY } from "@/tock.config";
 import { regex } from "@/constants/regex";
 import { projectImageFileTypes } from "@/constants/constants";
-import { updateProjectDetails } from "@/api/projects/projects";
-import { arrayBufferToBase64 } from "@/utils/utils";
+import {
+  updateProjectDetails,
+  checkUniqueSlug,
+} from "@/actions/launchpad/projects";
+import { imageUrlFromBlob } from "@/utils/image-utils";
 import { extractSlug } from "@/utils/string-utils";
 import { LaunchpadContext } from "@/contexts/project-context";
 import LabeledInput from "../design/labeled-input/labeled-input";
 import Button from "../design/button/button";
+import Loading from "../loading/loading";
 
 export default function ProjectDetailsForm() {
   // Contexts
@@ -27,12 +31,14 @@ export default function ProjectDetailsForm() {
   const [imageChanged, setImageChanged] = useState(false);
   const [imageSizeError, setImageSizeError] = useState(false);
   const [imageTypeError, setImageTypeError] = useState(false);
+  const [mustImage, setMustImage] = useState(false);
 
   const [showCover, setShowCover] = useState(false);
   const [coverToShow, setCoverToShow] = useState();
   const [coverChanged, setCoverChanged] = useState(false);
   const [coverSizeError, setCoverSizeError] = useState(false);
   const [coverTypeError, setCoverTypeError] = useState(false);
+  const [mustCover, setMustCover] = useState(false);
   // Form states
   const [name, setName] = useState(project.name);
   const [description, setDescription] = useState(project.description);
@@ -44,30 +50,25 @@ export default function ProjectDetailsForm() {
   const [slug, setSlug] = useState(project.slug);
 
   useEffect(() => {
+    if (!project) return;
     if (project.image) {
       setImageToShow(`${IPFS_GATEWAY}/${project.image}`);
-      if (!showImage) {
-        setShowImage(true);
-      }
+      if (!showImage) setShowImage(true);
     }
-  }, []);
-
-  useEffect(() => {
     if (project.cover) {
       setCoverToShow(`${IPFS_GATEWAY}/${project.cover}`);
-      if (!showCover) {
-        setShowCover(true);
-      }
+      if (!showCover) setShowCover(true);
     }
-  }, []);
+  }, [project]);
 
   useEffect(() => {
     if (!image) return;
     if (imageTypeError) setImageTypeError(false);
     if (imageSizeError) setImageSizeError(false);
     image.arrayBuffer().then((res) => {
-      const base64image = arrayBufferToBase64(res, image);
-      setImageToShow(base64image);
+      const blob = new Blob([res]);
+      const url = imageUrlFromBlob(blob);
+      setImageToShow(url);
       if (!showImage) {
         setShowImage(true);
       }
@@ -79,8 +80,9 @@ export default function ProjectDetailsForm() {
     if (coverTypeError) setCoverTypeError(false);
     if (coverSizeError) setCoverSizeError(false);
     cover.arrayBuffer().then((res) => {
-      const base64image = arrayBufferToBase64(res, cover);
-      setCoverToShow(base64image);
+      const blob = new Blob([res]);
+      const url = imageUrlFromBlob(blob);
+      setCoverToShow(url);
       if (!showCover) {
         setShowCover(true);
       }
@@ -95,20 +97,28 @@ export default function ProjectDetailsForm() {
     if (!image && !imageToShow) return;
     if (imageTypeError) setImageTypeError(false);
     if (imageSizeError) setImageSizeError(false);
+    if (project.image) {
+      setImageChanged(true);
+    } else {
+      setImageChanged(false);
+    }
     setImageToShow(null);
     setShowImage(false);
     setImage(null);
-    setImageChanged(true);
   }
 
   function clearCover() {
     if (!cover && !coverToShow) return;
     if (coverTypeError) setCoverTypeError(false);
     if (coverSizeError) setCoverSizeError(false);
+    if (project.cover) {
+      setCoverChanged(true);
+    } else {
+      setCoverChanged(false);
+    }
     setCoverToShow(null);
     setShowCover(false);
     setCover(null);
-    setCoverChanged(true);
   }
 
   function updateNeeded() {
@@ -175,17 +185,48 @@ export default function ProjectDetailsForm() {
   }
 
   function onChangeSlug(e) {
-    if (e.target.value.match(regex.alphanumeric) || e.target.value === "") {
+    if (e.target.value.match(regex.slug) || e.target.value === "") {
       setSlug(e.target.value);
     }
   }
 
   async function callUpdateProjectDetail() {
-    setSaving(true);
+    if (
+      (!project.image ||
+        project.image.length == 0 ||
+        project.image == "null") &&
+      !cover
+    ) {
+      setMustImage(true);
+      return;
+    }
+    if (
+      (!project.cover ||
+        project.cover.length == 0 ||
+        project.cover == "null") &&
+      !cover
+    ) {
+      setMustCover(true);
+      return;
+    }
 
+    setSaving(true);
     if (success) setSuccess(false);
     if (failed) setFailed(false);
-
+    if (errorMessage) setErrorMessage("");
+    if (project.slug != slug) {
+      const slugRes = await checkUniqueSlug(slug);
+      if (slugRes.success === false) {
+        setErrorMessage("Something wrong in our side, please try again.");
+        setSaving(false);
+        return;
+      }
+      if (slugRes.duplicate === true) {
+        setErrorMessage("Slug is taken.");
+        setSaving(false);
+        return;
+      }
+    }
     let files;
     if (imageChanged || coverChanged) {
       files = new FormData();
@@ -206,18 +247,24 @@ export default function ProjectDetailsForm() {
     };
 
     const res = await updateProjectDetails(address, projectDetails, files);
-    if (res.success === true) {
-      setSuccess(true);
-      setProject(res.payload);
-    } else {
+
+    if (res.success === false) {
       setFailed(true);
       if (res.message === "forbidden") {
         setErrorMessage("Only creator can edit the project");
+        setSaving(false);
+        return;
       } else {
         setErrorMessage("Something wrong in our side, please try again.");
-        console.log(res.message)
+        setSaving(false);
+        setSuccess(true);
+        return;
       }
     }
+    if (imageChanged) setImageChanged(false);
+    if (coverChanged) setCoverChanged(false);
+    setProject(res.payload);
+    setSuccess(true);
     setSaving(false);
   }
 
@@ -232,10 +279,18 @@ export default function ProjectDetailsForm() {
         type="text"
         placeholder="Cool NFT"
         onChange={onChangeName}
-        required
+        required={true}
+        subtitle={
+          <div>
+            <p>
+              -This name will be the title of your project for public display.
+            </p>
+            <p>-Your contact name will also be generated using this field.</p>
+          </div>
+        }
       >
         Project name{" "}
-        <span className="text-sm font-normal text-zinc-400">(required)</span>
+        <span className="text-xs font-normal text-zinc-400">(required)</span>
       </LabeledInput>
 
       <div className="mb-10">
@@ -243,6 +298,7 @@ export default function ProjectDetailsForm() {
           Project description
         </label>
         <textarea
+          value={description}
           className="text-sm appearance-none resize-none h-28 bg-zinc-700 rounded-xl w-full py-3 px-3 text-gray-200 leading-tight focus:outline-none focus:ring focus:ring-2 focus:ring-zinc-500"
           id="project-description"
           maxLength={500}
@@ -345,7 +401,7 @@ export default function ProjectDetailsForm() {
       <div id="project-image-uploader" className="mt-10">
         <label className="block text-tock-blue text-sm font-bold mb-2">
           Project image{" "}
-          <span className="text-sm font-normal text-zinc-400">
+          <span className="text-xs font-normal text-zinc-400">
             (Ratio 1 : 1, 2MB max)
           </span>
         </label>
@@ -391,6 +447,9 @@ export default function ProjectDetailsForm() {
             Supported file types: png, jpg, webp
           </p>
         )}
+        {mustImage && (
+          <p className="text-tock-red text-xs">please upload an image</p>
+        )}
         <div className="flex justify-center mt-2 mb-8">
           {showImage && (
             <img className="rounded-xl" src={imageToShow} width="200"></img>
@@ -400,7 +459,7 @@ export default function ProjectDetailsForm() {
       <div id="project-cover-uploader" className="mt-10 mb-10">
         <label className="block text-tock-blue text-sm font-bold mb-2">
           Project cover image{" "}
-          <span className="text-sm font-normal text-zinc-400">
+          <span className="text-xs font-normal text-zinc-400">
             (Ratio 4 : 1 landscape, 2MB max)
           </span>
         </label>
@@ -445,6 +504,9 @@ export default function ProjectDetailsForm() {
             Supported file types: png, jpg, webp
           </p>
         )}
+        {mustCover && (
+          <p className="text-tock-red text-xs">please upload a cover</p>
+        )}
         <div className="flex justify-center mt-2 mb-6">
           {showCover && (
             <img className="rounded-xl" src={coverToShow} width="600"></img>
@@ -459,14 +521,18 @@ export default function ProjectDetailsForm() {
           callUpdateProjectDetail();
         }}
       >
-        Save
+        {saving && <Loading isLoading={saving} size={10} />}
+        {!saving && <p>Save</p>}
       </Button>
       {success && !updateNeeded() && (
         <p className="mt-2 text-xs text-tock-green">
           Project details successfully updated.
         </p>
       )}
-      {failed && <p className="mt-2 text-xs text-tock-red">{errorMessage}</p>}
+      {/* <p>{JSON.stringify(updateNeeded())}</p> */}
+      {failed && (
+        <div className="mt-2 text-xs text-tock-red">{errorMessage}</div>
+      )}
     </form>
   );
 }

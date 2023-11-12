@@ -38,12 +38,11 @@ next-env.d.ts
 # dev
 *.test
 test
-tests
 database/projects.test
-model.json
 api/*
-test2.js
-waitlists
-a.json
-databases
+archive
+databasetest
+test12.mjs
+json.txt
+
 

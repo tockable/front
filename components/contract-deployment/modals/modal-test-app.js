@@ -1,35 +1,179 @@
-import { useState, useEffect } from "react";
+"use client";
+import { useState, useEffect, useRef, useContext } from "react";
+import {
+  useContractWrite,
+  usePrepareContractWrite,
+  useSwitchNetwork,
+  useNetwork,
+  useWaitForTransaction,
+} from "wagmi";
 import { imageUrlFromBlob } from "@/utils/image-utils";
+import uploadDirectoryToIpfs from "@/actions/ipfs/uploadDirectory";
+import { updateProjectMetadata } from "@/actions/launchpad/projects";
+import { LaunchpadContext } from "@/contexts/project-context";
+import { hexEncode } from "@/utils/crypto-utils";
 import Modal from "@/components/design/modals/modal";
-import ClipLoader from "react-spinners/ClipLoader";
+import Loading from "@/components/loading/loading";
+import Button from "@/components/design/button/button";
 
-export default function TestAppModal({ onClose, layersFiles }) {
+export default function TestAppModal({ onClose, layersFiles, layers }) {
+  const { abi, project, callGetContractAbi, setProject } =
+    useContext(LaunchpadContext);
+
   const [loaded, setLoaded] = useState(false);
   const [built, setBuilt] = useState(false);
-  const [builtLayersUrl, setBuiltLayersUrl] = useState({});
-  const [savedlayersFiles, setSavedLayerFiles] = useState(null);
-  const [totalCount, setTotalCount] = useState(0);
-  const [resources, setResources] = useState({});
+  const [builtLayers, setBuiltLayers] = useState({});
+  const [assets, setAssets] = useState([]);
   const [canvas, setCanvas] = useState(null);
   const [ctx, setCtx] = useState(null);
   const [drawing, setDrawing] = useState({});
   const [building, setBuilding] = useState(false);
-  let loadedCount = 0;
+  const [uploading, setUploading] = useState(false);
+  const [layerFilesNames, setLayersFilesNames] = useState([]);
+  const [last, setLast] = useState(-1);
+  const [cids, setCids] = useState([]);
+  const [abiNotFetched, setAbiNotFetched] = useState(false);
+  const [gettingAbi, setGettingAbi] = useState(false);
+  const [uploaded, setUploaded] = useState(0);
+
+  const [hideApp, setHideApp] = useState(false);
+  const [errorOnIpfs, setErrorOnIpfs] = useState(false);
+  const [successOnIpfs, setSuccessOnIpfs] = useState(false);
+  const [traits, setTraits] = useState([]);
+  const [readyToDeploy, setReadyToDeploy] = useState(false);
+
+  const totalCount = useRef(0);
+  const loadedCount = useRef(0);
+
+  const { config } = usePrepareContractWrite({
+    address: project.contractAddress,
+    abi: abi,
+    functionName: "addTraitTypes",
+    args: [traits],
+    enabled: readyToDeploy,
+  });
+  const sn = useSwitchNetwork();
+
+  const { chain } = useNetwork();
+
+  const { data, isLoading, isSuccess, isError, write, error } =
+    useContractWrite(config);
+  const uwt = useWaitForTransaction({ hash: data?.hash });
+
   function resetModal() {
     if (loaded) setLoaded(false);
     if (built) setBuilt(false);
-    if (totalCount > 0) setTotalCount(0);
-    if (loadedCount > 0) loadedCount = 0;
-    if (resources !== null) setResources(null);
+    if (totalCount > 0) totalCount.current = 0;
+    if (loadedCount.current > 0) loadedCount.current = 0;
+    if (assets !== null) setAssets(null);
+  }
+
+  async function getAbiAgain() {
+    setGettingAbi(true);
+    const res = await callGetContractAbi();
+    if (res.success === true) {
+      setAbiNotFetched(false);
+      setReadyToDeploy(true);
+    }
+    setGettingAbi(false);
+  }
+
+  useEffect(() => {
+    if (!project) return;
+    if (traits.length == 0) return;
+    if (abi) setReadyToDeploy(true);
+    else {
+      callGetContractAbi().then((res) => {
+        if (res.success === false) {
+          setAbiNotFetched(true);
+        } else setReadyToDeploy(true);
+      });
+    }
+  }, [traits]);
+
+  async function deploy() {
+    setSuccessOnIpfs(false);
+    write?.();
+  }
+
+  useEffect(() => {
+    if (!uwt.isSuccess) return;
+
+    const sortedCids = [];
+
+    for (let i = 0; i < layers.length; i++) {
+      const cid = cids.find((cid) => cid.name === layers[i]);
+      sortedCids.push(cid.cid);
+    }
+
+    updateProjectMetadata(
+      project.uuid,
+      project.creator,
+      layers,
+      layerFilesNames,
+      sortedCids
+    ).then((res) => {
+      if (res.success === true) {
+        setSuccessOnIpfs(true);
+        setProject(res.payload);
+      } else {
+        setTraits([]);
+        setErrorOnIpfs(true);
+      }
+    });
+  }, [uwt.isSuccess]);
+
+  useEffect(() => {
+    if (!isError) {
+    }
+  }, [isError]);
+
+  async function callUploadDirectoryToIpfs() {
+    setUploading(true);
+
+    if (!hideApp) setHideApp(true);
+    if (errorOnIpfs) setErrorOnIpfs(false);
+
+    let uploadNeaded = true;
+    let uploadSuccess = true;
+    let _cids = cids;
+    if (last == layersFiles.length - 1) uploadNeaded = false;
+
+    if (uploadNeaded) {
+      for (let i = last + 1; i < layersFiles.length; i++) {
+        const files = new FormData();
+        for (let j = 0; j < layersFiles[i].length; j++) {
+          files.append(`${j}`, layersFiles[i][j]);
+        }
+        const res = await uploadDirectoryToIpfs(files);
+        if (res.success === true) {
+          _cids.push({ name: layers[i], cid: res.cid });
+          setUploaded(i + 1);
+        } else {
+          setLast(i - 1);
+          setUploading(false);
+          setErrorOnIpfs(true);
+          setCids(_cids);
+          uploadSuccess = false;
+          return;
+        }
+      }
+      setCids(_cids);
+    }
+    if (!uploadSuccess) return;
+
+    const _traits = createTaits(layers);
+    console.log(_traits);
+    setTraits(_traits);
+    setUploading(false);
   }
 
   useEffect(() => {
     let len = 0;
-    for (let layer in layersFiles) {
-      len = len + layersFiles[layer].length;
+    for (let i in layersFiles) {
+      len = len + layersFiles[i].length;
     }
-    setTotalCount(len);
-    setSavedLayerFiles(layersFiles);
+    totalCount.current = len;
   }, []);
 
   function handleClose() {
@@ -44,12 +188,13 @@ export default function TestAppModal({ onClose, layersFiles }) {
 
   useEffect(() => {
     if (!loaded) return;
+    if (canvas) return;
     let _canvas = document.getElementById("test-app-canvas");
     setCanvas(_canvas);
     let ctx = _canvas.getContext("2d");
     setCtx(ctx);
     let newDrawing = {};
-    for (let layer in resources) {
+    for (let layer in assets) {
       newDrawing[layer] = 0;
     }
     setDrawing(newDrawing);
@@ -58,22 +203,33 @@ export default function TestAppModal({ onClose, layersFiles }) {
 
   function drawImage(layer) {
     if (!built) return;
-    const selectedLayer = resources[layer];
-    ctx.drawImage(selectedLayer[drawing[layer]], 0, 0, 200, 200);
+    const selectedLayer = assets[layer];
+    ctx.drawImage(selectedLayer[drawing[layer]].img, 0, 0, 200, 200);
   }
 
   function nextImg(layer) {
-    const selectedLayer = resources[layer];
+    const selectedLayer = assets[layer];
     if (drawing[layer] + 1 < selectedLayer.length) {
-      let newDrawing = { ...drawing };
+      const newDrawing = { ...drawing };
       newDrawing[layer] = drawing[layer] + 1;
       setDrawing(newDrawing);
     }
   }
 
+  function IsNextImgNotAvailable(layer) {
+    const selectedLayer = assets[layer];
+    if (drawing[layer] + 1 < selectedLayer.length) return false;
+    else return true;
+  }
+
+  function IsPrevImgNotAvailable(layer) {
+    if (drawing[layer] - 1 >= 0) return false;
+    else return true;
+  }
+
   function prevImg(layer) {
     if (drawing[layer] - 1 >= 0) {
-      let newDrawing = { ...drawing };
+      const newDrawing = { ...drawing };
       newDrawing[layer] = drawing[layer] - 1;
       setDrawing(newDrawing);
     }
@@ -90,43 +246,46 @@ export default function TestAppModal({ onClose, layersFiles }) {
     setBuilding(true);
     const res = await buildLayers();
     if (res.success === true) {
-      let assets = {};
-      for (let layer in builtLayersUrl) {
-        let filesArray = builtLayersUrl[layer];
-        let images = [];
-        for (let i = 0; i < filesArray.length; i++) {
+      const _assets = [];
+      for (let i in builtLayers) {
+        const filesArray = builtLayers[i];
+        const images = [];
+        for (let j = 0; j < filesArray.length; j++) {
           let img = new Image();
           img.onload = imageLoaded;
-          img.src = filesArray[i];
-          images.push(img);
+          img.src = filesArray[j].url;
+          images.push({ img, name: filesArray[j].name });
         }
-        assets[layer] = images;
+        _assets[i] = images;
       }
-      setResources(assets);
+      setAssets(_assets);
     }
   }
 
   function imageLoaded(e) {
-    loadedCount = loadedCount + 1;
-
-    if (loadedCount == totalCount) {
+    loadedCount.current = loadedCount.current + 1;
+    if (loadedCount.current === totalCount.current) {
       setLoaded(true);
     }
   }
 
   async function buildLayers() {
-    let tempBuiltLayersUrl = builtLayersUrl;
-    for (let layer in savedlayersFiles) {
+    let tempBuiltLayers = builtLayers;
+    const _layersFilesNames = [];
+    for (let i in layersFiles) {
+      const _layerFileNames = [];
       const tempLayer = [];
-      for (let file of savedlayersFiles[layer]) {
-        const builtImageUrl = imageUrlFromBlob(file);
-        tempLayer.push(builtImageUrl);
+      for (let file of layersFiles[i]) {
+        const url = imageUrlFromBlob(file);
+        _layerFileNames.push(file.name);
+        tempLayer.push({ url, name: file.name });
       }
-      if (!tempBuiltLayersUrl.hasOwnProperty(layer)) {
-        tempBuiltLayersUrl[layer] = tempLayer;
-      }
+
+      _layersFilesNames.push(_layerFileNames);
+      tempBuiltLayers[i] = tempLayer;
     }
-    setBuiltLayersUrl(tempBuiltLayersUrl);
+    setLayersFilesNames(_layersFilesNames);
+    setBuiltLayers(tempBuiltLayers);
     return { success: true };
   }
 
@@ -134,80 +293,337 @@ export default function TestAppModal({ onClose, layersFiles }) {
     <Modal isOpen={true} onClose={handleClose}>
       <div className="flex basis-3/4 px-4">
         <div className="flex flex-col w-full">
-          <h1 className="text-tock-green font-bold text-xl mt-4 mb-6">
-            build and test your app
-          </h1>
+          <div>
+            <h1 className="text-tock-green font-bold text-xl mt-4 mb-6">
+              build and test your app
+            </h1>
+            <p className="text-zinc-400 text-sm my-2">
+              build and test the preview of your app before deploy and publish
+            </p>
+            {hideApp && (
+              <div>
+                {uploading && (
+                  <div className="border rounded-2xl bg-tock-black border-zinc-400 p-4 my-4">
+                    <h1 className="text-tock-green font-normal text-lg mb-2">
+                      uploading to ipfs...
+                    </h1>
+                    <p className="text-tock-orange text-xs font-normal mb-6">
+                      please do not close this window...
+                    </p>
+                    <p className="text-center text-tock-green mb-2 text-xs font-normal">
+                      {Math.ceil((uploaded * 100) / layers.length)}%
+                    </p>
+                    <div className="flex justify-center items-center">
+                      <div className="flex justify-center h-12 mb-8 items-center">
+                        <Loading isLoading={uploading} size={20} />
+                      </div>
+                    </div>
+                  </div>
+                )}
+                {/* {successOnIpfs &&
+                  !readyToDeploy && (
+                    <div className="border rounded-2xl bg-tock-black border-zinc-400 p-4 my-4">
+                      <h1 className="text-tock-green font-normal text-lg mb-6">
+                        waiting for deploy...
+                      </h1>
+                      <div className="flex justify-center h-12 mb-8 items-center">
+                        <Loading isLoading={successOnIpfs} size={20} />
+                      </div>
+                    </div>
+                  )} */}
+                {errorOnIpfs && (
+                  <IpfsStatus
+                    layers={layers}
+                    cids={cids}
+                    last={last}
+                    retry={callUploadDirectoryToIpfs}
+                  />
+                )}
+                {abiNotFetched && (
+                  <Button
+                    onClick={() => {
+                      getAbiAgain();
+                    }}
+                    disabled={isLoading}
+                    variant="warning"
+                  >
+                    {!abi && <p>retry</p>}
+                    {abiNotFetched && (
+                      <Loading isLoading={gettingAbi} size={10} />
+                    )}
+                  </Button>
+                )}
+                {successOnIpfs && (
+                  <div className="border rounded-2xl bg-tock-black border-zinc-400 p-4 my-4">
+                    <h1 className="text-tock-green font-normal text-lg mb-6">
+                      Metadata deployed successully!
+                    </h1>
+                  </div>
+                )}
+                {uwt.isLoading && (
+                  <div className="border rounded-2xl bg-tock-black border-zinc-400 p-4 my-4">
+                    <h1 className="text-tock-green font-normal text-lg mb-2">
+                      wait for transaction...
+                    </h1>
+                    <p className="text-tock-orange text-xs font-normal mb-6">
+                      please do not close this window...
+                    </p>
+                    <div className="flex justify-center items-center">
+                      <div className="flex justify-center h-12 mb-8 items-center">
+                        <Loading isLoading={uwt.isLoading} size={20} />
+                      </div>
+                    </div>
+                  </div>
+                )}
+                {readyToDeploy &&
+                  !uwt.isSuccess &&
+                  !successOnIpfs &&
+                  !uwt.isLoading && (
+                    <div className="border rounded-2xl bg-tock-black border-zinc-400 p-4 my-4">
+                      <h1 className="text-tock-green font-normal text-lg mb-6">
+                        sign to deploy
+                      </h1>
 
-          {!loaded && (
-            <div>
-              <button
-                className="mb-6 transition ease-in-out mr-4 hover:bg-tock-darkgreen duration-300 bg-tock-green text-tock-semiblack font-bold py-2 px-4 rounded-2xl focus:outline-none focus:shadow-outline active:text-white"
-                type="button"
-                disabled={building}
-                onClick={() => build()}
-              >
-                <div className="w-14">
-                  {building && (
-                    <ClipLoader
-                      color="#ffffff"
-                      loading={building}
-                      size={10}
-                      aria-label="Loading Spinner"
-                      data-testid="loader"
-                    />
-                  )}
-                  {!building && <div>build</div>}
-                </div>
-              </button>
-              {building && (
-                <p className="mb-6 text-xs text-blue-400">
-                  depends on your images, it may take a while to build...
-                </p>
-              )}
-            </div>
-          )}
-          {loaded && (
-            <div className="flex flex-col justify-center w-full">
-              <div className=" flex justify-center">
-                <canvas
-                  id="test-app-canvas"
-                  className="rounded-xl border border-zinc-500 mb-2"
-                  width={200}
-                  height={200}
-                ></canvas>
-              </div>
-              {built && (
-                <div className="mb-6 mt-2">
-                  {Object.keys(drawing).map((layer) => {
-                    return (
-                      <div className="mb-4 flex flex-col sm:grid sm:grid-cols-2 items-center justify-center">
-                        <p className="text-sm text-zinc-400 text-start">
-                          {layer}:
+                      {chain.id != project.chainId && (
+                        <Button
+                          className="xs:mt-2"
+                          variant="warning"
+                          type="button"
+                          onClick={() =>
+                            sn.switchNetwork?.(Number(project.chainId))
+                          }
+                          disabled={sn.isLoading}
+                        >
+                          <div>
+                            {sn.isLoading &&
+                              sn.pendingChainId === Number(project.chainId) && (
+                                <Loading
+                                  isLoading={
+                                    sn.isLoading &&
+                                    sn.pendingChainId ===
+                                      Number(project.chainId)
+                                  }
+                                  size={10}
+                                />
+                              )}
+                            {!sn.isLoading && (
+                              <div> switch network to {project.chain}</div>
+                            )}
+                          </div>
+                        </Button>
+                      )}
+
+                      {isError && (
+                        <p className="text-tock-red text-sx mt-2">
+                          {error.name}
                         </p>
-                        <div className="flex justify-center select-none">
-                          <button
-                            className="mt-1 mb-1 border border-zinc-500 transition ease-in-out mx-4 hover:bg-zinc-600 duration-300 bg-tock-semiblack text-zinc-400 font-bold py-2 px-4 rounded-2xl focus:outline-none focus:shadow-outline active:text-white"
-                            onClick={() => prevImg(layer)}
+                      )}
+                      {sn.error && (
+                        <p className="text-tock-red text-xs mt-2">
+                          Switch network failed. please try again, or changing
+                          manually using one of the following:
+                          <ul className="mt-2">
+                            <li>
+                              <a
+                                className="text-blue-400 hover:text-blue-300"
+                                href="https://chainlist.org"
+                              >
+                                chainlist.org
+                              </a>
+                            </li>
+                            <li>
+                              <a
+                                className="text-blue-400 hover:text-blue-300"
+                                href="https://chainlist.wtf"
+                              >
+                                chainlist.wtf
+                              </a>
+                            </li>
+                          </ul>
+                        </p>
+                      )}
+                      {chain.id === Number(project.chainId) && (
+                        <div className="flex justify-center items-center">
+                          <Button
+                            onClick={() => {
+                              deploy();
+                            }}
+                            disabled={isLoading}
+                            variant="primary"
                           >
-                            &lt;
-                          </button>
+                            {!isError && !isLoading && <p>deploy</p>}
+                            {isLoading && (
+                              <Loading isLoading={isLoading} size={10} />
+                            )}
+                          </Button>
+                          {isError && (
+                            <p className="text-tock-red mt-2 text-sm">
+                              {error}
+                            </p>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  )}
+              </div>
+            )}
+            {!hideApp && (
+              <div>
+                {!loaded && (
+                  <div className="my-4">
+                    <button
+                      className="mb-6 transition ease-in-out mr-4 hover:bg-tock-darkgreen duration-300 bg-tock-green text-tock-semiblack font-bold py-2 px-4 rounded-2xl focus:outline-none focus:shadow-outline active:text-white"
+                      type="button"
+                      disabled={building}
+                      onClick={() => build()}
+                    >
+                      <div className="w-14">
+                        {building && <Loading isLoading={building} size={10} />}
+                        {!building && <div>build</div>}
+                      </div>
+                    </button>
+                    {building && (
+                      <p className="mb-6 text-xs text-blue-400">
+                        depends on your images, it may take a while to build...
+                      </p>
+                    )}
+                  </div>
+                )}
+                {loaded && (
+                  <div className="flex flex-col justify-center w-full">
+                    <div className=" flex justify-center">
+                      <canvas
+                        id="test-app-canvas"
+                        className="rounded-xl border border-zinc-500 mb-2"
+                        width={200}
+                        height={200}
+                      ></canvas>
+                    </div>
+                    {built && (
+                      <div className="mb-6 mt-2 px-10">
+                        {Object.keys(drawing).map((layer, i) => {
+                          return (
+                            <div
+                              key={"drawing_" + i}
+                              className="mb-4 flex flex-col sm:grid sm:grid-cols-2 items-center justify-center"
+                            >
+                              <p className="text-sm text-zinc-400 text-start">
+                                <span className="text-tock-orange">
+                                  {layers[layer]}:
+                                </span>{" "}
+                                {assets[layer][drawing[layer]].name.slice(
+                                  0,
+                                  assets[layer][drawing[layer]].name.length - 4
+                                )}
+                              </p>
+                              <div className="flex justify-center select-none">
+                                <button
+                                  className="disabled:border-zinc-700 disabled:text-zinc-700 mt-1 mb-1 border border-zinc-500 transition ease-in-out mx-4 enabled:hover:bg-zinc-600 duration-300 bg-tock-semiblack text-zinc-400 font-bold py-2 px-4 rounded-2xl focus:outline-none focus:shadow-outline active:text-white"
+                                  onClick={() => prevImg(layer)}
+                                  disabled={IsPrevImgNotAvailable(layer)}
+                                >
+                                  &lt;
+                                </button>
 
-                          <button
-                            className="mt-1 mb-1 border border-zinc-500 transition ease-in-out mx-4 hover:bg-zinc-600 duration-300 bg-tock-semiblack text-zinc-400 font-bold py-2 px-4 rounded-2xl focus:outline-none focus:shadow-outline active:text-white"
-                            onClick={() => nextImg(layer)}
+                                <p className="text-zinc-500 text-xs w-12 text-center align-middle mt-4">
+                                  {drawing[layer] + 1}/{assets[layer].length}
+                                </p>
+                                <button
+                                  className="disabled:border-zinc-700 disabled:text-zinc-700 mt-1 mb-1 border border-zinc-500 transition ease-in-out mx-4 enabled:hover:bg-zinc-600 duration-300 bg-tock-semiblack text-zinc-400 font-bold py-2 px-4 rounded-2xl focus:outline-none focus:shadow-outline active:text-white"
+                                  onClick={() => nextImg(layer)}
+                                  disabled={IsNextImgNotAvailable(layer)}
+                                >
+                                  &gt;
+                                </button>
+                              </div>
+                            </div>
+                          );
+                        })}
+                        <p className="text-blue-400 text-xs my-2">
+                          if you are happy with your app, Click on upload &
+                          deploy button. by doing this action, you can store
+                          your images on ipfs and write your traits on the
+                          contract.
+                        </p>
+                        <p className="text-tock-orange text-xs my-2">
+                          PLEASE NOTE THAT THIS ACTION IS IRREVERSIBLE.
+                        </p>
+                        <div>
+                          <Button
+                            variant="secondary"
+                            className="xs:mt-2 mb-4"
+                            type="button"
+                            onClick={() => callUploadDirectoryToIpfs()}
+                            disabled={layersFiles.length == 0 || uploading}
                           >
-                            &gt;
-                          </button>
+                            {!uploading && <p>upload & deploy</p>}
+                            {uploading && (
+                              <Loading isLoading={uploading} size={10} />
+                            )}
+                          </Button>
                         </div>
                       </div>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
-          )}
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </Modal>
   );
+}
+
+function IpfsStatus({ cids, layers, retry, last }) {
+  return (
+    <div className="border rounded-2xl bg-tock-black border-zinc-400 p-4 my-4">
+      <h1 className="text-tock-red font-normal text-lg mt-2 mb-4">
+        oops :( we had errors on some directories
+      </h1>
+      {cids?.length > 0 && (
+        <div className=" my-1 text-tock-green text-xs">
+          <p className=" my-2">Successful directory uploads:</p>
+          {cids.map((cid, i) => {
+            return (
+              <p key={"cid_" + i} className="my-1 indent-2">
+                {cid.name}: {cid.cid}
+              </p>
+            );
+          })}
+        </div>
+      )}
+      <div className=" my-4 text-tock-red text-xs">
+        <p className="my-2">failed directory uploads:</p>
+        {layers?.map((layer, i) => {
+          if (i > last) {
+            return (
+              <p key={"failed_" + i} className="my-1 indent-2">
+                {layer} failed
+              </p>
+            );
+          }
+        })}
+      </div>
+      <div>
+        <Button variant="warning" className="mt-4" onClick={() => retry()}>
+          retry
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+function createTaits(_layers) {
+  const _traits = [];
+  for (let i = 0; i < _layers.length; i++) {
+    let _bytes = hexEncode(_layers[i]);
+    let zeroPaddingLen = 64 - _bytes.length;
+    for (let i = 0; i < zeroPaddingLen; i++) {
+      _bytes = _bytes + "0";
+    }
+    const hex = "0x" + _bytes;
+    _traits.push(hex);
+  }
+  return _traits;
 }

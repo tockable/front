@@ -1,22 +1,22 @@
 import { useState, useEffect } from "react";
-import { MAX_LAYERS } from "@/tock.config";
-
 import { FileUploader } from "react-drag-drop-files";
+import { MAX_LAYERS } from "@/tock.config";
 import { projectImageFileTypes } from "@/constants/constants";
 import NewMetadataModal from "./modals/modal-new-metadata";
 import TestAppModal from "./modals/modal-test-app";
 import RemoveLayerModal from "./modals/modal-warning";
 import RenameModal from "./modals/modal-rename";
-import ClipLoader from "react-spinners/ClipLoader";
 import Button from "../design/button/button";
 
 export default function ProjectMetadataFrom() {
   const [layers, setLayers] = useState([]);
-  const [layersFiles, setLayerFiles] = useState({});
+  const [layersFiles, setLayerFiles] = useState([]);
   const [layerToDelete, setLayerToDelete] = useState(null);
   const [layerToRename, setLayerToRename] = useState(null);
   const [key, setKey] = useState(0);
 
+  //Error
+  const [emptyLayerError, setEmptyLayerError] = useState(false);
   // Modals
   const [newMetadataModalShow, setNewMetadataModelShow] = useState(false);
   const [testAppModalShow, setTestAppModalShow] = useState(false);
@@ -27,9 +27,10 @@ export default function ProjectMetadataFrom() {
     e.preventDefault();
   }
 
-  function handleLayerFileUpload(_file, _layer) {
+  function handleLayerFileUpload(_files, _layer) {
     let layerTemp = layersFiles;
-    layerTemp[_layer] = _file;
+    const index = layers.indexOf(_layer);
+    layerTemp[index] = _files;
     setLayerFiles(layerTemp);
     setKey(key + 1);
   }
@@ -38,9 +39,19 @@ export default function ProjectMetadataFrom() {
     setNewMetadataModelShow(false);
   }
 
+  function hanldeOpenTestAppModal() {
+    const emptylayer = layersFiles.find((layer) => layer.length === 0);
+    if (emptylayer) {
+      setEmptyLayerError(true);
+      return;
+    }
+    if (!emptyLayerError) setEmptyLayerError(false);
+    setTestAppModalShow(true);
+  }
   function handleSumbitNewLayer(_newLayer) {
     if (layers.length + 1 <= MAX_LAYERS) {
       setLayers([...layers, _newLayer]);
+      setLayerFiles([...layersFiles, []]);
     }
     setNewMetadataModelShow(false);
   }
@@ -56,17 +67,16 @@ export default function ProjectMetadataFrom() {
   }, [layerToDelete]);
 
   function handleRemoveLayer() {
+    const index = layers.indexOf(layerToDelete);
+
     const newLayers = [...layers];
-    const index = newLayers.indexOf(layerToDelete);
     newLayers.splice(index, 1);
     setLayers(newLayers);
 
-    const newLayersFiles = { ...layersFiles };
-    if (newLayersFiles.hasOwnProperty(layerToDelete)) {
-      delete newLayersFiles[layerToDelete];
-    }
-
+    const newLayersFiles = [...layersFiles];
+    newLayersFiles.splice(index, 1);
     setLayerFiles(newLayersFiles);
+
     handleCloseRemoveLayerModal();
   }
 
@@ -93,23 +103,16 @@ export default function ProjectMetadataFrom() {
       newLayers[index] = _newName;
       setLayers(newLayers);
     }
-    const newLayersFiles = {};
-    Object.keys(layersFiles).forEach((key) => {
-      const value = layersFiles[key];
-      if (key === layerToRename) {
-        newLayersFiles[_newName] = value;
-      } else {
-        newLayersFiles[key] = value;
-      }
-    });
-    setLayerFiles(newLayersFiles);
     handleCloseRenameModal();
   }
 
   function handleClearLayerFiles(_layer) {
-    let layerTemp = layersFiles;
-    layerTemp[_layer] = [];
-    setLayerFiles(layerTemp);
+    const index = layers.indexOf(_layer);
+    if (index !== -1) {
+      const tempLayerFiles = layersFiles;
+      tempLayerFiles[index] = [];
+      setLayerFiles(tempLayerFiles);
+    }
     setKey(key + 1);
   }
 
@@ -124,6 +127,7 @@ export default function ProjectMetadataFrom() {
         {testAppModalShow && (
           <TestAppModal
             onClose={handleCloseTestAppModal}
+            layers={layers}
             layersFiles={layersFiles}
           />
         )}
@@ -148,16 +152,20 @@ export default function ProjectMetadataFrom() {
         <h1 className="text-tock-green font-bold text-xl mt-4 mb-6 ">
           add tockable metadata
         </h1>
-        <p className="text-sm text-zinc-400 mb-10">
+        <p className="text-sm text-zinc-400 mb-4">
           Create one layer per desinged trait, then drag & drop the image files
           related to each layer on the related box at once.{" "}
           <a className="font-bold text-sm text-blue-400 hover:text-blue-300 hover:cursor-pointer">
             learn with examples in our guide page.
           </a>
         </p>
+        <p className="text-sm text-zinc-400 mb-10">
+          choose proper and meaningful names for backgrounds and your files.
+          These namse will be used to construct token metadata.
+        </p>
         <div key={key}>
           {layers.map((layer, i) => (
-            <div>
+            <div key={"layer_" + i}>
               <div className="flex flex-row">
                 <label className="block text-tock-orange text-sm font-bold mb-2">
                   <span className="text-zinc-400">{i}: </span> {layer}
@@ -181,28 +189,26 @@ export default function ProjectMetadataFrom() {
                   </button>
                 </div>
               </div>
-              {layersFiles.hasOwnProperty(layer) &&
-                layersFiles[layer]?.length > 0 && (
-                  <div className="mb-10">
-                    <span
-                      key={"layer_loadded_" + i}
-                      className="text-xs text-zinc-400"
-                    >
-                      {layersFiles[layer].length}{" "}
-                      {layersFiles[layer].length > 1 ? "images" : "image"} added
-                      successfully.
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => handleClearLayerFiles(layer)}
-                      className="ml-2 transition ease-in-out duration-300 text-xs text-zinc-500 text-bold hover:text-tock-red"
-                    >
-                      Clear images
-                    </button>
-                  </div>
-                )}
-              {(layersFiles[layer]?.length == 0 ||
-                !layersFiles.hasOwnProperty(layer)) && (
+              {layersFiles[i].length > 0 && (
+                <div className="mb-10">
+                  <span
+                    key={"layer_loadded_" + i}
+                    className="text-xs text-zinc-400"
+                  >
+                    {layersFiles[i].length}{" "}
+                    {layersFiles[i].length > 1 ? "images" : "image"} added
+                    successfully.
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => handleClearLayerFiles(layer)}
+                    className="ml-2 transition ease-in-out duration-300 text-xs text-zinc-500 text-bold hover:text-tock-red"
+                  >
+                    Clear images
+                  </button>
+                </div>
+              )}
+              {layersFiles[i].length == 0 && (
                 <div className="mb-10">
                   <FileUploader
                     handleChange={(file) => handleLayerFileUpload(file, layer)}
@@ -240,32 +246,19 @@ export default function ProjectMetadataFrom() {
           </Button>
         </div>
         <Button
-          variant="primary"
-          type="button"
-          onClick={() =>
-            handleUpdateProjectContract(address, {
-              uuid,
-              tokenName,
-              totalSupply,
-              tokenSymbol,
-              firstTokenId,
-            })
-          }
-          //   disabled={saving || !updateNeeded()}
-        >
-          Save
-        </Button>
-        <Button
           variant="secondary"
           className="xs:mt-2"
           type="button"
-          onClick={() => {
-            setTestAppModalShow(true);
-          }}
-          disabled={Object.keys(layersFiles).length == 0}
+          onClick={hanldeOpenTestAppModal}
+          disabled={layersFiles.length == 0}
         >
           test app
         </Button>
+        {emptyLayerError && (
+          <p className="text-tock-red text-sm">
+            please delete layers with no image
+          </p>
+        )}
       </form>
     </div>
   );

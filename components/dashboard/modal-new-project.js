@@ -1,16 +1,18 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { DROP_TYPES } from "@/constants/dropTypes";
-import { createNewProject } from "@/api/projects/projects";
-import { useNetwork } from "wagmi";
+import getChainData from "@/utils/chain-utils";
+import { useAccount } from "wagmi";
+import { createNewProject } from "@/actions/launchpad/dashboard";
 import Modal from "../design/modals/modal";
+import Button from "../design/button/button";
 
-export default function NewProjectModal({ isOpen, onClose, verifiedAddress }) {
-  const { chains } = useNetwork();
+export default function NewProjectModal({ isOpen, onClose }) {
+  const { address } = useAccount();
   const router = useRouter();
   const [name, setName] = useState("");
   const [chainId, setChainId] = useState("");
-  const [dropType, setDropType] = useState(DROP_TYPES[1].type);
+  const [dropType, setDropType] = useState(DROP_TYPES[0].type);
 
   function onChangeName(e) {
     setName(e.target.value);
@@ -20,17 +22,17 @@ export default function NewProjectModal({ isOpen, onClose, verifiedAddress }) {
     setChainId(e.target.value);
   }
 
-  async function handleCreateNewProject(_verifiedAddress, _project) {
-    if (_project.name.length == 0) return;
+  async function handleCreateNewProject() {
+    if (name.length == 0) return;
 
-    const chain = chains.find((chain) => chain.id == _project.chainId);
+    const chainData = getChainData(Number(chainId));
     const project = {
-      name: _project.name,
-      chainId: _project.chainId,
-      chain: chain.name,
-      dropType: _project.dropType,
+      name: name,
+      chainId: chainId,
+      chain: chainData.name,
+      dropType: dropType,
     };
-    const res = await createNewProject(_verifiedAddress, project);
+    const res = await createNewProject(address, project);
     if (res.success === true) {
       const launchpadSlug = res.uuid;
       router.push(`/launchpad/${launchpadSlug}`);
@@ -53,9 +55,9 @@ export default function NewProjectModal({ isOpen, onClose, verifiedAddress }) {
             <h2 className="text-sm text-zinc-400 mb-4 mt-6">
               Choose your drop
             </h2>
-            {DROP_TYPES.map((drop) => {
+            {DROP_TYPES.map((drop, i) => {
               return (
-                <div className="my-2">
+                <div key={"drop_" + i} className="my-2">
                   <button
                     type="button"
                     className={`rounded-2xl w-full border-2 ${
@@ -103,30 +105,26 @@ export default function NewProjectModal({ isOpen, onClose, verifiedAddress }) {
               onChange={onChangeChain}
               required
             >
-              <option value="1">Ethereum</option>
-              <option value="10">Optimism</option>
+              {/* <option value="1">Ethereum</option>
+              <option value="10">Optimism</option> */}
               <option value="420">Optimism goerli</option>
-              <option value="137">Polygon</option>
+              {/* <option value="137">Polygon</option> */}
               <option value="80001">Polygon mumbai</option>
-              <option value="8453">Base</option>
+              {/* <option value="8453">Base</option> */}
               {/* <option value="7777777">Zora</option> */}
               <option value="84531">Base goerli</option>
               {/* <option value="42161">Arbitrum One</option> */}
             </select>
-            <button
-              className="transition ease-in-out mr-4 hover:bg-tock-darkgreen duration-300 bg-tock-green text-tock-semiblack font-bold py-2 px-4 rounded-2xl focus:outline-none focus:shadow-outline active:text-white"
+            <Button
+              variant="primary"
               type="button"
               disabled={name.length == 0}
-              onClick={() =>
-                handleCreateNewProject(verifiedAddress, {
-                  name,
-                  chainId,
-                  dropType,
-                })
-              }
+              onClick={() => {
+                handleCreateNewProject();
+              }}
             >
               + Create
-            </button>
+            </Button>
           </div>
         </div>
       </form>

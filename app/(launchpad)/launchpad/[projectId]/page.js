@@ -1,4 +1,5 @@
 "use client";
+import { useState, useEffect } from "react";
 import "@rainbow-me/rainbowkit/styles.css";
 import LaunchpadLanding from "@/components/contract-deployment/launchpad-landing";
 import {
@@ -18,7 +19,7 @@ import {
   optimismGoerli,
 } from "wagmi/chains";
 import { publicProvider } from "wagmi/providers/public";
-import { useState, useEffect } from "react";
+import AuthContext from "@/contexts/auth-context";
 
 const { chains, publicClient } = configureChains(
   [
@@ -35,8 +36,8 @@ const { chains, publicClient } = configureChains(
 );
 
 const { connectors } = getDefaultWallets({
-  appName: "My RainbowKit App",
-  projectId: "YOUR_PROJECT_ID",
+  appName: process.env.NEXT_PUBLIC_CONNECT_WALLET_APP_NAME,
+  projectId: process.env.NEXT_PUBLIC_CONNECT_WALLET_PROJECT_ID,
   chains,
 });
 
@@ -65,7 +66,9 @@ export default function Page({ params }) {
         }}
         chains={chains}
       >
-        {mounted && <LaunchpadLanding params={params} />}
+        <AuthContext>
+          {mounted && <LaunchpadLanding params={params} />}
+        </AuthContext>
       </RainbowKitProvider>
     </WagmiConfig>
   );

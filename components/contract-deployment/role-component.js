@@ -1,10 +1,10 @@
 import { useState, useEffect } from "react";
 import { TagsInput } from "react-tag-input-component";
 import { regex } from "@/constants/regex";
-import LabeledInput from "../design/labeled-input/labeled-input";
 import UploadCsvModal from "./modals/modal-uploadcsv";
+import LabeledInput from "../design/labeled-input/labeled-input";
 
-export default function Role({ role, onChangeRole, onDeleteRole }) {
+export default function Role({ roles, role, onChangeRole, onDeleteRole }) {
   const [showUploadCsvModal, setShowUploadCsvModal] = useState(false);
   const [total, setTotal] = useState(role.allowedAddresses.length);
 
@@ -47,13 +47,15 @@ export default function Role({ role, onChangeRole, onDeleteRole }) {
           <span className="text-zinc-400">{role.id}: </span> {role.name}
         </label>
         <div className="flex grow justify-end">
-          <button
-            type="button"
-            onClick={() => onDeleteRole(role.id)}
-            className="mb-2 mx-2 transition ease-in-out duration-300 text-xs text-zinc-500 text-bold hover:text-tock-red"
-          >
-            remove role
-          </button>
+          {!roles.find((_role) => _role.id == role.id) && (
+            <button
+              type="button"
+              onClick={() => onDeleteRole(role.id)}
+              className="mb-2 mx-2 transition ease-in-out duration-300 text-xs text-zinc-500 text-bold hover:text-tock-red"
+            >
+              remove role
+            </button>
+          )}
         </div>
       </div>
       <LabeledInput
@@ -103,6 +105,9 @@ export default function Role({ role, onChangeRole, onDeleteRole }) {
             {total} addresses
           </span>
         </label>
+        <p className="text-xs font-normal text-zinc-400">
+          please hit enter to add address
+        </p>
 
         <TagsInput
           name="allowedAddressess"

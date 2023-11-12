@@ -1,7 +1,7 @@
-
 export default function Footer() {
-    return <footer className="text-center h-64 pt-10">
-        {/* <p>This is Footer</p>
-        <p>Join us</p> */}
+  return (
+    <footer className="text-center text-zinc-600 text-xs h-48 pt-32">
+      &copy;2023 Tockable. All rights reserved.
     </footer>
+  );
 }

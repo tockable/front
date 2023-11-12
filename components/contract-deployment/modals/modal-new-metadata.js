@@ -5,9 +5,14 @@ import Button from "@/components/design/button/button";
 
 export default function NewMetadataModal({ isOpen, onClose, onSubmit }) {
   const [layerName, setLayerName] = useState("");
+  const [layerNameError, setLayerNameError] = useState(false);
 
   function onChangeLayerName(e) {
     setLayerName(e.target.value);
+    if (e.target.value.length > 32) setLayerNameError(true);
+    else {
+      if (layerNameError) setLayerNameError(false);
+    }
   }
 
   async function handleCreateNewLayer() {
@@ -36,7 +41,7 @@ export default function NewMetadataModal({ isOpen, onClose, onSubmit }) {
               onChange={onChangeLayerName}
               required={true}
             >
-              layer name
+              layer name{" "}
               <span className="text-sm font-normal text-zinc-400">
                 (required)
               </span>
@@ -44,11 +49,16 @@ export default function NewMetadataModal({ isOpen, onClose, onSubmit }) {
             <Button
               variant="primary"
               type="button"
-              disabled={layerName.length == 0}
+              disabled={layerName.length == 0 || layerName.length > 32}
               onClick={handleCreateNewLayer}
             >
               + add layer
             </Button>
+            {layerNameError && (
+              <p className="text-tock-red text-sm mt-2">
+                Layer names must be less than 32 charcters.
+              </p>
+            )}
           </div>
         </div>
       </form>

@@ -1,33 +1,20 @@
-import { useEffect, useState } from "react";
 import Link from "next/link";
 import DiscordSvg from "@/svgs/social-svgs/DiscordSvg";
 import TwitterSvg from "@/svgs/social-svgs/TwitterSvg";
 import MirrorSvg from "@/svgs/social-svgs/MirrorSvg";
-import { getArgs } from "@/api/admins/admin";
+import { SOCIAL } from "@/tock.config";
 export default function Socialbar() {
-  const [twitter, setTwitter] = useState("#");
-  const [discord, setDiscord] = useState("#");
-  const [mirror, setMirror] = useState("#");
-  useEffect(() => {
-    getArgs().then((res) => {
-      if (res.success) {
-        setTwitter(res.config.twitter);
-        setDiscord(res.config.discord);
-        setMirror(res.config.mirror);
-      }
-    });
-  }, []);
   return (
     <footer className="mt-12 flex flex-row gap-10 md:gap-20 lg:gap-32 justify-center">
-      <Link href={twitter}>
-        <TwitterSvg />
+      <Link href={SOCIAL.twitter}>
+        <TwitterSvg className="w-6 hover:opacity-50 transition ease-in-out duration-200" />
       </Link>
-      <Link href={discord}>
-        <DiscordSvg />
+      <Link href={SOCIAL.discord}>
+        <DiscordSvg className="w-6 hover:opacity-50 transition ease-in-out duration-200" />
       </Link>
-      <Link href={mirror}>
-        <MirrorSvg />
-      </Link>
+      {/* <Link href={SOCIAL.mirror}>
+        <MirrorSvg className="w-6" />
+      </Link> */}
     </footer>
   );
 }

@@ -1,17 +1,19 @@
 "use client";
-import { useEffect, useState, useContext } from "react";
+import { useState, useContext, useEffect } from "react";
 import { useAccount, useNetwork, useSwitchNetwork } from "wagmi";
-import ClipLoader from "react-spinners/ClipLoader";
 import { regex } from "@/constants/regex";
-import createFile from "@/api/compile/compile";
-import { updateProjectContract } from "@/api/projects/projects";
+import { updateProjectContract } from "@/actions/launchpad/projects";
 import { LaunchpadContext } from "@/contexts/project-context";
-import Button from "../design/button/button";
+import { createAndCompile } from "@/actions/contract/compile";
+import { getContractAbiAndBytecode } from "@/actions/contract/metadata";
+import DeployContractModal from "./modals/modal-deploy";
 import LabeledInput from "../design/labeled-input/labeled-input";
+import Loading from "../loading/loading";
+import Button from "../design/button/button";
 
 export default function ProjectContractForm() {
   // Contexts
-  const { project, setProject } = useContext(LaunchpadContext);
+  const { project, setProject, setAbi } = useContext(LaunchpadContext);
   const { address } = useAccount();
   const { chain } = useNetwork();
   const { error, isLoading, pendingChainId, switchNetwork } =
@@ -20,34 +22,68 @@ export default function ProjectContractForm() {
   // Page states
   const [saving, setSaving] = useState(false);
   const [deploying, setDeploying] = useState(false);
+  const [takeMoment, setTakeMoment] = useState(false);
   const [success, setSuccess] = useState(false);
   const [failed, setFailed] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
   const [pleaseFillRequired, setPleaseFillRequied] = useState(false);
+  const [nonZeroSupply, setNonZeroSupply] = useState(false);
+  const [unlimitedDisabled, setUnlimitedDisabled] = useState(false);
+  const [totalSupplyDisabled, setTotalSupplyDisabled] = useState(false);
+  const [duplicateVerificationDisable, setDuplicateVerificationDisable] =
+    useState(false);
+  const [abiReady, setAbiReady] = useState(false);
+  const [abiAndBytecode, setAbiAndByecode] = useState();
 
   // Form states
   const [tokenName, setTokenName] = useState(project.tokenName);
   const [tokenSymbol, setTokenSymbol] = useState(project.tokenSymbol);
   const [isUnlimited, setIsUnlimited] = useState(project.isUnlimited);
   const [totalSupply, setTotalSupply] = useState(Number(project.totalSupply));
+  const [duplicateVerification, setDuplicateVerification] = useState(false);
   const [firstTokenId, setFirstTokenId] = useState(
     Number(project.firstTokenId)
   );
 
-  // useEffect(() => {
-  //   if (project.isDeployed) {
-  //     setContractDeployed(true);
-  //   }
-  // }, []);
+  // Deploy
+  const [contractCreated, setContarctCreated] = useState(false);
+  const [showDeployContractModal, setShowDeployContractModal] = useState(false);
+
+  useEffect(() => {
+    if (!contractCreated) return;
+    if (!abiReady) return;
+    getContractAbiAndBytecode(project.creator, project.uuid, project.name).then(
+      (res) => {
+        if (res.success === true) {
+          setAbiAndByecode(res.contract);
+          setAbi(res.contract.abi);
+        } else {
+          setAbiReady(false);
+          setTakeMoment(false);
+          setErrorMessage("an error occured, please try again");
+          setDeploying(false);
+          setSaving(false);
+        }
+      }
+    );
+  }, [abiReady]);
+
+  useEffect(() => {
+    if (!abiAndBytecode) return;
+    handleShowDeployModalContract();
+  }, [abiAndBytecode]);
 
   function updateNeeded() {
     if (
       project.tokenName != tokenName ||
       project.tokenSymbol != tokenSymbol ||
-      project.firstTokenId != firstTokenId ||
+      Number(project.firstTokenId) != firstTokenId ||
+      Number(project.totalSupply).toString() != totalSupply ||
+      Number(project.totalSupply) != totalSupply ||
       project.totalSupply != totalSupply ||
-      project.isUnlimited != isUnlimited
+      project.isUnlimited != isUnlimited ||
+      project.duplicateVerification != duplicateVerification
     ) {
       return true;
     } else {
@@ -56,29 +92,43 @@ export default function ProjectContractForm() {
   }
 
   async function callUpdateProjectContract() {
+    if (success) setSuccess(false);
+    if (failed) setFailed(false);
+    if (pleaseFillRequired) setPleaseFillRequied(false);
+    if (nonZeroSupply) setNonZeroSupply(false);
+    if (tokenName.length == 0 || tokenSymbol.length == 0) {
+      if (!pleaseFillRequired) setPleaseFillRequied(true);
+      return;
+    }
+    if (totalSupply === 0 || totalSupply === "0") {
+      if (!isUnlimited) {
+        if (!nonZeroSupply) setNonZeroSupply(true);
+        return;
+      }
+    }
     setSaving(true);
-
     const projectContract = {
       uuid: project.uuid,
       tokenName,
-      isUnlimited,
-      totalSupply,
+      isUnlimited: duplicateVerification ? false : isUnlimited,
+      duplicateVerification: isUnlimited ? false : duplicateVerification,
+      totalSupply: isUnlimited ? 0 : totalSupply,
       tokenSymbol,
       firstTokenId,
     };
 
     const res = await updateProjectContract(address, projectContract);
-    if (res.success === true) {
-      if (failed) setFailed(false);
-      if (!success) setSuccess(true);
 
+    if (res.success === true) {
+      setSuccess(true);
+      if (isUnlimited) setTotalSupply("0");
       setSuccessMessage("Contract info updated successfully.");
       setProject(res.payload);
     } else {
-      if (success) setSuccess(false);
-      if (!failed) setFailed(true);
+      setTakeMoment(false);
+      setFailed(true);
       if (res.message === "forbidden") {
-        setErrorMessage("Only creator can edit the project");
+        setErrorMessage("Only project creator can edit the project");
       } else {
         setErrorMessage("Something wrong in our side, please try again.");
       }
@@ -86,42 +136,54 @@ export default function ProjectContractForm() {
     setSaving(false);
   }
 
-  async function deploy() {
-    if (
-      tokenName.length == 0 ||
-      tokenSymbol.length == 0 ||
-      totalSupply.length == 0
-    ) {
-      if (!pleaseFillRequired) setPleaseFillRequied(true);
+  async function callSaveAndeploy() {
+    if (!updateNeeded() && contractCreated) {
+      setAbiReady(true);
+      setTakeMoment(true);
+      setDeploying(true);
+      setSaving(true);
       return;
     }
 
-    if (pleaseFillRequired) setPleaseFillRequied(false);
     if (success) setSuccess(false);
     if (failed) setFailed(false);
+    if (pleaseFillRequired) setPleaseFillRequied(false);
+    if (nonZeroSupply) setNonZeroSupply(false);
+    if (tokenName.length == 0 || tokenSymbol.length == 0) {
+      if (!pleaseFillRequired) setPleaseFillRequied(true);
+      return;
+    }
+    if (totalSupply === 0 || totalSupply === "0") {
+      if (!isUnlimited) {
+        if (!nonZeroSupply) setNonZeroSupply(true);
+        return;
+      }
+    }
 
+    setTakeMoment(true);
     setDeploying(true);
     setSaving(true);
 
     let updated = true;
-    let updatedProject = project;
-
     if (updateNeeded()) {
       updated = false;
       const projectContract = {
-        uuid,
+        uuid: project.uuid,
         tokenName,
-        totalSupply,
-        isUnlimited,
+        isUnlimited: duplicateVerification ? false : isUnlimited,
+        duplicateVerification: isUnlimited ? false : duplicateVerification,
+        totalSupply: isUnlimited ? 0 : totalSupply,
         tokenSymbol,
         firstTokenId,
       };
       const res = await updateProjectContract(address, projectContract);
       if (res.success === true) {
         updated = true;
-        updatedProject = res.payload;
+        setProject(res.payload);
       } else {
         setFailed(true);
+        setSaving(false);
+        setDeploying(false);
         if (res.message === "forbidden") {
           setErrorMessage("Only creator can edit the project");
         } else {
@@ -131,14 +193,18 @@ export default function ProjectContractForm() {
     }
 
     if (updated) {
-      const res = await createFile(address, updatedProject);
+      const res = await createAndCompile(address, project.uuid);
       if (res.success === true) {
-        setProject(updatedProject);
-        setContractDeployed(true);
+        if (isUnlimited) setTotalSupply(0);
+        setContarctCreated(true);
+        setAbiReady(true);
+      } else {
+        setFailed(true);
+        setErrorMessage("something wrong in our side, please try again");
+        setSaving(false);
+        setDeploying(false);
       }
     }
-    setSaving(false);
-    setDeploying(false);
   }
 
   function onChangeTokenName(e) {
@@ -162,10 +228,41 @@ export default function ProjectContractForm() {
   function onChangeUnlimited(e) {
     if (e.target.value == "false") {
       setIsUnlimited(false);
+      setTotalSupplyDisabled(false);
+      setDuplicateVerificationDisable(false);
     }
     if (e.target.value == "true") {
       setIsUnlimited(true);
+      setTotalSupplyDisabled(true);
+      setDuplicateVerificationDisable(true);
+      setTotalSupply("0");
     }
+  }
+
+  function onChangeDuplicateVerifiction(e) {
+    if (e.target.value == "false") {
+      setDuplicateVerification(false);
+      setUnlimitedDisabled(false);
+      if (isUnlimited) setTotalSupplyDisabled(true);
+      else setTotalSupplyDisabled(false);
+    }
+    if (e.target.value == "true") {
+      setDuplicateVerification(true);
+      setTotalSupplyDisabled(false);
+      setUnlimitedDisabled(true);
+    }
+  }
+
+  function handleShowDeployModalContract() {
+    setShowDeployContractModal(true);
+  }
+
+  function handleCloseDeployModalContract() {
+    setAbiReady(false);
+    setTakeMoment(false);
+    setSaving(false);
+    setDeploying(false);
+    setShowDeployContractModal(false);
   }
 
   function noSubmit(e) {
@@ -174,6 +271,14 @@ export default function ProjectContractForm() {
 
   return (
     <form onKeyDown={noSubmit}>
+      <div id="modals">
+        {showDeployContractModal && (
+          <DeployContractModal
+            onClose={handleCloseDeployModalContract}
+            contract={abiAndBytecode}
+          />
+        )}
+      </div>
       <h1 className="text-tock-green font-bold text-xl mt-4 mb-6 ">
         contract info & deploy
       </h1>
@@ -183,6 +288,12 @@ export default function ProjectContractForm() {
         type="text"
         placeholder="Tockable Donkeys"
         onChange={onChangeTokenName}
+        subtitle={
+          <p>
+            This will be your token name in token metadata: e.g name: Tockable
+            Donkeys #23
+          </p>
+        }
       >
         Token Name / Collection name
       </LabeledInput>
@@ -198,12 +309,72 @@ export default function ProjectContractForm() {
       </LabeledInput>
 
       <div className="mb-10">
-        <label className="block text-tock-blue text-sm font-bold mb-2">
+        <label
+          className={`block ${
+            duplicateVerificationDisable ? "text-zinc-600" : "text-tock-blue"
+          }  text-sm font-bold mb-2`}
+        >
+          With dynamic NFTs, there is a chance that minters may create
+          duplicates tokens, do you want to prevent this?
+          <div>
+            <p
+              className={`${
+                duplicateVerificationDisable ? "text-zinc-600" : "text-zinc-400"
+              } text-xs mt-1 mb-2 font-normal`}
+            >
+              The great thing is that unique-ness verification will be handled
+              by the contract and is totally on-chain. However, this will
+              disable unlimited-supply collections.
+            </p>
+          </div>
+        </label>
+        <div className="flex items-center mb-4">
+          <input
+            id="duplicate-0"
+            type="radio"
+            value="false"
+            name="duplication"
+            className="w-4 h-4 accent-tock-green text-blue-100"
+            onChange={onChangeDuplicateVerifiction}
+            checked={!duplicateVerification}
+            disabled={duplicateVerificationDisable}
+          />
+          <label className="ml-2 text-sm text-gray-200 dark:text-gray-300">
+            No
+          </label>
+        </div>
+        <div className="flex items-center">
+          <input
+            id="duplicate-1"
+            type="radio"
+            value="true"
+            name="duplication"
+            className="w-4 h-4 accent-tock-green text-blue-100"
+            onChange={onChangeDuplicateVerifiction}
+            checked={duplicateVerification}
+            disabled={duplicateVerificationDisable}
+          />
+          <label className="ml-2 text-sm text-gray-200 dark:text-gray-300">
+            Yes
+          </label>
+        </div>
+      </div>
+
+      <div className="mb-10">
+        <label
+          className={`block ${
+            !duplicateVerification ? "text-tock-blue" : "text-zinc-600"
+          } text-sm font-bold mb-2`}
+        >
           Do you want to make your supply unlimited?
           <div>
-            <p className="text-zinc-400 text-xs mt-1 mb-2 font-normal">
-              With Tockable dynamic drops, you can create collection with an
-              unlimited supply (maxSupply = 2^256).
+            <p
+              className={`${
+                duplicateVerification ? "text-zinc-600" : "text-zinc-400 "
+              } text-xs mt-1 mb-2 font-normal`}
+            >
+              With Tockable drops, you can create erc721 collection with an
+              unlimited supply (maxsSupply = 2^256).
             </p>
           </div>
         </label>
@@ -216,15 +387,13 @@ export default function ProjectContractForm() {
             className="w-4 h-4 accent-tock-green text-blue-100"
             onChange={onChangeUnlimited}
             checked={!isUnlimited}
+            disabled={unlimitedDisabled}
           />
-          <label
-            for="unlimited-0"
-            className="ml-2 text-sm text-gray-200 dark:text-gray-300"
-          >
+          <label className="ml-2 text-sm text-gray-200 dark:text-gray-300">
             No
           </label>
         </div>
-        <div class="flex items-center">
+        <div className="flex items-center">
           <input
             id="unlimited-1"
             type="radio"
@@ -233,25 +402,26 @@ export default function ProjectContractForm() {
             className="w-4 h-4 accent-tock-green text-blue-100"
             onChange={onChangeUnlimited}
             checked={isUnlimited}
+            disabled={unlimitedDisabled}
           />
-          <label
-            for="unlimited-1"
-            className="ml-2 text-sm text-gray-200 dark:text-gray-300"
-          >
+          <label className="ml-2 text-sm text-gray-200 dark:text-gray-300">
             Yes
           </label>
         </div>
       </div>
       <LabeledInput
-        value={!isUnlimited ? totalSupply : ""}
+        value={!isUnlimited ? totalSupply || "" : ""}
         id="total-suplly"
         type="text"
-        placeholder={!isUnlimited ? "9999" : "unlimited"}
+        placeholder={!isUnlimited ? "10000" : "unlimited"}
         onChange={onChangeTotalSupply}
         required={true}
-        disabled={isUnlimited}
+        disabled={totalSupplyDisabled}
       >
-        Total supply (required if not unlimited)
+        Total supply{" "}
+        <span className="text-xs font-normal text-zinc-400">
+          (Max: 10000, required if not unlimited)
+        </span>
       </LabeledInput>
 
       <div className="mb-10">
@@ -280,14 +450,11 @@ export default function ProjectContractForm() {
             checked={firstTokenId == 0}
             disabled={project.dropType.slice(0, 8) === "tockable"}
           />
-          <label
-            for="first-token-id-0"
-            className="ml-2 text-sm text-gray-200 dark:text-gray-300"
-          >
+          <label className="ml-2 text-sm text-gray-200 dark:text-gray-300">
             0
           </label>
         </div>
-        <div class="flex items-center">
+        <div className="flex items-center">
           <input
             id="first-token-id-1"
             type="radio"
@@ -298,10 +465,7 @@ export default function ProjectContractForm() {
             checked={firstTokenId == 1}
             disabled={project.dropType.slice(0, 8) === "tockable"}
           />
-          <label
-            for="first-token-id-1"
-            className="ml-2 text-sm text-gray-200 dark:text-gray-300"
-          >
+          <label className="ml-2 text-sm text-gray-200 dark:text-gray-300">
             1
           </label>
         </div>
@@ -329,14 +493,11 @@ export default function ProjectContractForm() {
         >
           <div>
             {isLoading && pendingChainId === Number(project.chainId) && (
-              <ClipLoader
-                color="#ffffff"
-                loading={
+              <Loading
+                isLoading={
                   isLoading && pendingChainId === Number(project.chainId)
                 }
                 size={10}
-                aria-label="Loading Spinner"
-                data-testid="loader"
               />
             )}
             {!isLoading && <div> switch network to {project.chain}</div>}
@@ -349,25 +510,25 @@ export default function ProjectContractForm() {
           className="xs:mt-2"
           variant="secondary"
           type="button"
-          onClick={() => deploy()}
+          onClick={() => callSaveAndeploy()}
           disabled={deploying}
         >
-          <div>
-            {deploying && (
-              <ClipLoader
-                color="#ffffff"
-                loading={deploying}
-                size={10}
-                aria-label="Loading Spinner"
-                data-testid="loader"
-              />
-            )}
-          </div>
+          <div>{deploying && <Loading isLoading={deploying} size={10} />}</div>
           {!deploying && <div> Save & Deploy</div>}
         </Button>
       )}
       {success && !updateNeeded() && (
         <p className="mt-2 text-xs text-tock-green">{successMessage}</p>
+      )}
+      {takeMoment && (
+        <p className="mt-2 text-xs text-blue-400">
+          creating contract... please wait...
+        </p>
+      )}
+      {nonZeroSupply && (
+        <p className="mt-2 text-xs text-tock-red">
+          total supply cannot be zero.
+        </p>
       )}
       {failed && <p className="mt-2 text-xs text-tock-red">{errorMessage}</p>}
       {pleaseFillRequired && (

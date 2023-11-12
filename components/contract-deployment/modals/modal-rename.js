@@ -5,9 +5,14 @@ import LabeledInput from "@/components/design/labeled-input/labeled-input";
 
 export default function RenameModal({ onClose, oldName, onSubmit }) {
   const [layerName, setLayerName] = useState(oldName);
+  const [layerNameError, setLayerNameError] = useState(false);
 
   function onChangeLayerName(e) {
     setLayerName(e.target.value);
+    if (e.target.value.length > 32) setLayerNameError(true);
+    else {
+      if (layerNameError) setLayerNameError(false);
+    }
   }
 
   async function handleRenameLayer() {
@@ -48,11 +53,16 @@ export default function RenameModal({ onClose, oldName, onSubmit }) {
             <Button
               variant="primary"
               type="button"
-              disabled={layerName.length == 0}
+              disabled={layerName.length == 0 || layerName.length > 32}
               onClick={handleRenameLayer}
             >
               change name
             </Button>
+            {layerNameError && (
+              <p className="text-tock-red text-sm mt-2">
+                Layer names must be less than 32 charcters.
+              </p>
+            )}
           </div>
         </div>
       </form>

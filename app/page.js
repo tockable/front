@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState, useEffect } from "react";
+import Link from "next/link";
 import Register from "@/components/waitlist/waitlist-register";
 import NavbarHome from "@/components/design/navbar/navbarHome";
 import Footer from "@/components/design/footer";
@@ -138,29 +139,28 @@ export default function page() {
   }
 
   return (
-    <main className="h-screen bg-tock-dark">
+    <main className="h-screen bg-tock-black">
       {/* className="flex w-screen min-h-screen flex-col items-center gap-6 mt-8" */}
 
       <NavbarHome resultRefs={resultRefs} />
       <div id="banner" className="h-screen mt-20" /* flex justify-center"*/>
         {/* <div className="flex items-center justify-center w-11/12 md:w-3/4 lg:w-1/2"> */}
         <div
-          className="pt-[10vh] md:pt-[25vh] md:px-20 flex flex-col md:flex-row" /*md:gap-[10vw]*/
+          className="pt-[20vh] md:px-20 flex flex-col xl:flex-row" /*md:gap-[10vw]*/
         >
-          <div className="min-w-max md:w-full mb-10 md:mb-0 md:ml-24 2xl:ml-96 lg:ml-52">
-            <p className="font-bold text-6xl text-center md:text-start h-[4rem]">
-              {/* {firstWord[tock]} */}
+          <div className="min-w-max md:w-full mb-10 flex flex-col xl:ml-[20%]">
+            <p className="font-bold text-6xl text-center xl:text-start h-[4rem]">
               <Tock />
             </p>
-            <p className="font-bold text-6xl text-center md:text-start h-[4rem]">
+            <p className="font-bold text-6xl text-center xl:text-start h-[4rem]">
               <Your />
             </p>
-            <p className="font-bold text-6xl text-center md:text-start h-[4rem]">
+            <p className="font-bold text-6xl text-center xl:text-start h-[4rem]">
               <Token />
             </p>
           </div>
 
-          <div className="flex flex-col grow justify-center 2xl:mr-80 lg:mr-52">
+          <div className="flex flex-col grow justify-center xl:mr-[20%]">
             <div className="flex justify-center select-none">
               <button
                 className="mt-1 mb-1 border border-zinc-500 transition ease-in-out mx-4 hover:bg-zinc-600 duration-300 bg-tock-black text-zinc-400 font-bold py-2 px-4 rounded-2xl focus:outline-none focus:shadow-outline active:text-white"
@@ -208,19 +208,65 @@ export default function page() {
             </div>
 
             <div className="flex grow justify-center mt-16">
-              <button
-                className="m-4 w-56 transition ease-in-out hover:bg-tock-darkgreen duration-300 bg-tock-green text-tock-semiblack font-bold py-2 px-4 rounded-xl focus:outline-none focus:shadow-outline active:text-white"
-                onClick={scrollToWaitlist}
-              >
-                Join Waitlist
-              </button>
+              <Link href="/dashboard">
+                <button
+                  className="m-4 w-56 transition ease-in-out hover:bg-tock-darkgreen duration-300 bg-tock-green text-tock-semiblack font-bold py-2 px-4 rounded-xl focus:outline-none focus:shadow-outline active:text-white"
+                  // onClick={scrollToWaitlist}
+                >
+                  launch project
+                </button>
+              </Link>
             </div>
           </div>
         </div>
         {/* </div> */}
-        <h1 className="h-32 mt-24 lg:mt-64 text-zinc-300 text-2xl text-center">
-          Unlocking onchain possibilities for Web3 & NFT enthusiasts.
+        <h1 className="h-32 text-zinc-300 mt-4 font-bold text-2xl text-center">
+          unlocking onchain possibilities for Web3 & NFT enthusiasts.
         </h1>
+      </div>
+      {/* <h1 className="text-zinc-300 mt-4 font-bold text-2xl text-center">
+        power of choice
+      </h1> */}
+      <div className="flex flex-col items-center gap-10 justify-center lg:flex-row mt-10">
+        <div className="border-2 border-tock-orange rounded-xl p-4 w-96">
+          <h1 className="text-tock-green font-bold text-2xl mb-2">
+            no more random JPGS!
+          </h1>
+          <p className="text-zinc-200">
+            forget random JPGs, it's your choice! create and mint the new
+            generation of NFTs with Tockable.
+          </p>
+        </div>
+        <div className="border-2 border-tock-orange rounded-xl p-4 w-96">
+          <h1 className="text-tock-green font-bold text-2xl mb-2">
+            returning power to minters
+          </h1>
+          <p className="text-zinc-200">
+            Tockable lets minters compose and mint their favorite NFT using
+            their favorite traits and mint it instantly.
+          </p>
+        </div>
+      </div>
+
+      <div className="flex flex-col items-center gap-10 justify-center lg:flex-row mt-10 mb-44">
+        <div className="border-2 border-tock-orange rounded-xl p-4 w-96">
+          <h1 className="text-tock-green font-bold text-2xl mb-2">
+            zere-code for creators
+          </h1>
+          <p className="text-zinc-200">
+            Tockable is a zero-code platform to let creators create and publish
+            their own dynamic-mintable collection.
+          </p>
+        </div>
+        <div className="border-2 border-tock-orange rounded-xl p-4 w-96">
+          <h1 className="text-tock-green font-bold text-2xl mb-2">
+            learn about tockable
+          </h1>
+          <p className="text-zinc-200">
+            learn about what tockable can do with our docs! soon!
+          </p>
+          {/* <p>docs</p> */}
+        </div>
       </div>
 
       <div ref={addToRef}>

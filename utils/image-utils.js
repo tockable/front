@@ -10,3 +10,9 @@ export function imageUrlFromBlob(_file) {
   const urlCreator = window.URL || window.webkitURL;
   return urlCreator.createObjectURL(_file);
 }
+
+export async function bufferFromBlob(_blob) {
+  const arrayBuffer = await _blob.arrayBuffer();
+  const buffer = Buffer.from(arrayBuffer);
+  return buffer;
+}

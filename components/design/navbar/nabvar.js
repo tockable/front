@@ -1,23 +1,7 @@
 import Link from "next/link";
-import { useEffect, useState } from "react";
-import { getArgs } from "@/api/admins/admin";
 import { BASEURL } from "@/tock.config";
 import TockableLogo from "@/svgs/logo";
 export default function Navbar() {
-  const [mission, setMission] = useState(null);
-  useEffect(() => {
-    getArgs().then((res) => {
-      if (res.success) {
-        if (
-          res.config.mission != "" ||
-          res.config.mission != null ||
-          res.config.mission != undefined
-        ) {
-          setMission(res.config.mission);
-        }
-      }
-    });
-  }, []);
   return (
     <div>
       <div className="z-10 flex h-[3rem] w-[3rem] justify-items-start fixed top-16 sm:left-[2rem] md:top-2 xs:left-[1.5rem] invisible xs:visible sm:visible rounded-xl">
@@ -36,22 +20,14 @@ export default function Navbar() {
           >
             home
           </Link>
-          {!mission && (
-            <Link
-              className="p-8 mx-1 text-center transition ease-in-out hover:bg-tock-black duration-300 text-gray-300 font-bold py-2 px-4 rounded-xl focus:outline-none focus:shadow-outline active:text-white flex-auto"
-              href="#"
-            >
-              doc <span className="text-gray-500"> soon!</span>
-            </Link>
-          )}
-          {mission && (
-            <Link
-              className="p-8 mx-1 text-center transition ease-in-out hover:bg-tock-black duration-300 text-gray-300 font-bold py-2 px-4 rounded-xl focus:outline-none focus:shadow-outline active:text-white flex-auto"
-              href={mission}
-            >
-              mission
-            </Link>
-          )}
+
+          <Link
+            className="p-8 mx-1 text-center transition ease-in-out hover:bg-tock-black duration-300 text-gray-300 font-bold py-2 px-4 rounded-xl focus:outline-none focus:shadow-outline active:text-white flex-auto"
+            href="#"
+          >
+            doc <span className="text-gray-500"> soon!</span>
+          </Link>
+
           <Link href={`${BASEURL}/?ref=12345`}>
             <button className="mx-1 text-center transition ease-in-out hover:bg-tock-darkgreen duration-300 bg-tock-green text-tock-semiblack font-bold py-2 px-4 rounded-xl focus:outline-none focus:shadow-outline active:text-white flex-auto">
               Join Waitlist

@@ -68,6 +68,7 @@ body {
   background-color: #3f3f46;
   color: #e4e4e7;
   font-size: smaller;
+  width: 100%;
 }
 
 .rti--container:focus-visible {

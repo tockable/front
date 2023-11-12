@@ -19,21 +19,13 @@ import { publicProvider } from "wagmi/providers/public";
 import { useState, useEffect } from "react";
 
 const { chains, publicClient } = configureChains(
-  [
-    mainnet,
-    polygon,
-    optimism,
-    base,
-    zora,
-    polygonMumbai,
-    baseGoerli,
-  ],
+  [mainnet, polygon, optimism, base, zora, polygonMumbai, baseGoerli],
   [publicProvider()]
 );
 
 const { connectors } = getDefaultWallets({
-  appName: "My RainbowKit App",
-  projectId: "YOUR_PROJECT_ID",
+  appName: process.env.NEXT_PUBLIC_CONNECT_WALLET_APP_NAME,
+  projectId: process.env.NEXT_PUBLIC_CONNECT_WALLET_PROJECT_ID,
   chains,
 });
 
@@ -43,7 +35,7 @@ const wagmiConfig = createConfig({
   publicClient,
 });
 
-export default function Page({ params }) {
+export default function WagmiProvider({ children }) {
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
   return (
@@ -62,7 +54,7 @@ export default function Page({ params }) {
         }}
         chains={chains}
       >
-        {mounted && <LaunchpadLanding params={params} />}
+        {mounted && <div>{children}</div>}
       </RainbowKitProvider>
     </WagmiConfig>
   );
