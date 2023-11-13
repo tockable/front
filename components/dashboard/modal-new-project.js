@@ -1,18 +1,24 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useAccount } from "wagmi";
 import { DROP_TYPES } from "@/constants/dropTypes";
 import getChainData from "@/utils/chain-utils";
-import { useAccount } from "wagmi";
 import { createNewProject } from "@/actions/launchpad/dashboard";
+import Loading from "../loading/loading";
 import Modal from "../design/modals/modal";
 import Button from "../design/button/button";
 
 export default function NewProjectModal({ isOpen, onClose }) {
-  const { address } = useAccount();
+  // Contexts & Hooks
   const router = useRouter();
+  const { address } = useAccount();
+
+  // States
   const [name, setName] = useState("");
   const [chainId, setChainId] = useState("");
   const [dropType, setDropType] = useState(DROP_TYPES[0].type);
+  const [creating, setCreating] = useState(false);
+  const [error, setError] = useState(false);
 
   function onChangeName(e) {
     setName(e.target.value);
@@ -24,7 +30,8 @@ export default function NewProjectModal({ isOpen, onClose }) {
 
   async function handleCreateNewProject() {
     if (name.length == 0) return;
-
+    setCreating(true);
+    if (error) setError(false);
     const chainData = getChainData(Number(chainId));
     const project = {
       name: name,
@@ -36,7 +43,10 @@ export default function NewProjectModal({ isOpen, onClose }) {
     if (res.success === true) {
       const launchpadSlug = res.uuid;
       router.push(`/launchpad/${launchpadSlug}`);
+    } else {
+      setError(true);
     }
+    setCreating(false);
   }
 
   function noSubmit(e) {
@@ -48,12 +58,12 @@ export default function NewProjectModal({ isOpen, onClose }) {
       <form onKeyDown={noSubmit} className="flex basis-3/4 px-4">
         <div className="flex flex-col w-full">
           <h1 className="text-tock-green font-bold text-xl mt-4 mb-6">
-            Create project
+            create project
           </h1>
 
           <div className="mb-10">
             <h2 className="text-sm text-zinc-400 mb-4 mt-6">
-              Choose your drop
+              choose your drop
             </h2>
             {DROP_TYPES.map((drop, i) => {
               return (
@@ -118,12 +128,13 @@ export default function NewProjectModal({ isOpen, onClose }) {
             <Button
               variant="primary"
               type="button"
-              disabled={name.length == 0}
+              disabled={name.length == 0 || creating}
               onClick={() => {
                 handleCreateNewProject();
               }}
             >
-              + Create
+              {creating && <Loading isLoading={creating} size={10} />}
+              {!creating && <p>+ Create</p>}
             </Button>
           </div>
         </div>

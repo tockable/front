@@ -113,7 +113,7 @@ export default function DeployContractModal({ onClose, contract }) {
       ) {
         setError("Rejected by user.");
       } else {
-        setError("Error occured");
+        setError("An rror occured");
       }
       setTakeMoment(false);
       setSuccess("");

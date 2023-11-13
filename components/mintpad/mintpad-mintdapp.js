@@ -1,16 +1,14 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useContext } from "react";
 import { IPFS_GATEWAY } from "@/tock.config";
 import { NFT_STORAGE_GATEWAY } from "@/tock.config";
 import { hexEncode } from "@/utils/crypto-utils";
+import { MintContext } from "@/contexts/mint-context";
 import Loading from "../loading/loading";
 
-export default function MintpadDapp({
-  layers,
-  fileNames,
-  cids,
-  setBlob,
-  isSetBlob,
-}) {
+export default function MintpadDapp({ layers, fileNames, cids, blobState }) {
+  // Contexts & Hookds
+  const { setBlob } = useContext(MintContext);
+  // States
   const [loaded, setLoaded] = useState(false);
   const [built, setBuilt] = useState(false);
   const [assets, setAssets] = useState([]);
@@ -18,10 +16,12 @@ export default function MintpadDapp({
   const [totalCount, setTotalCount] = useState(0);
   const [percentage, setPercentage] = useState(0);
 
+  // Refs
   const ctx = useRef(null);
   const canvas = useRef(null);
   const loadedCount = useRef(0);
 
+  // Effects
   useEffect(() => {
     if (fileNames.length == 0) return;
     let len = 0;
@@ -30,19 +30,21 @@ export default function MintpadDapp({
   }, [fileNames]);
 
   useEffect(() => {
-    if (!isSetBlob) return;
+    if (blobState === 0) return;
+
     const traits = [];
     for (let i = 0; i < layers.length; i++) {
       const trait_type = toHex(layers[i]);
       const selectedLayer = assets[i];
       const _value = selectedLayer[drawing[i]].name;
+      console.log(_value)
       const value = toHex(_value.slice(0, _value.length - 4));
       traits.push({ trait_type, value });
     }
     canvas.current.toBlob((blob) => {
       setBlob({ blob, traits });
     });
-  }, [isSetBlob]);
+  }, [blobState]);
 
   useEffect(() => {
     if (totalCount == 0) return;
@@ -64,13 +66,6 @@ export default function MintpadDapp({
     setAssets(_assets);
   }, [totalCount]);
 
-  function redraw() {
-    ctx.current.clearRect(0, 0, canvas.current.width, canvas.current.height);
-    for (let layer in drawing) {
-      drawImage(layer);
-    }
-  }
-
   useEffect(() => {
     if (!built) return;
     redraw();
@@ -88,6 +83,14 @@ export default function MintpadDapp({
     setBuilt(true);
   }, [loaded]);
 
+  // Functions
+  function redraw() {
+    ctx.current.clearRect(0, 0, canvas.current.width, canvas.current.height);
+    for (let layer in drawing) {
+      drawImage(layer);
+    }
+  }
+
   function imageLoaded(e) {
     setPercentage(Math.ceil(((loadedCount.current + 1) * 100) / totalCount));
     loadedCount.current = loadedCount.current + 1;
@@ -98,10 +101,6 @@ export default function MintpadDapp({
     if (!built) return;
     const selectedLayer = assets[layer];
     ctx.current.drawImage(selectedLayer[drawing[layer]].img, 0, 0, 1000, 1000);
-
-    // const _value = selectedLayer[drawing[layer]].name;
-    // const value = _value.slice(0, _value.length - 4);
-    // console.log(value);
   }
 
   function nextImg(layer) {

@@ -10,17 +10,16 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ConnectButton } from "@rainbow-me/rainbowkit";
-import { useAccount, useDisconnect } from "wagmi";
 import { signOut } from "next-auth/react";
 import { useSession } from "next-auth/react";
+import { useAccount, useDisconnect } from "wagmi";
+import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { fetchAllProjectsByWallet } from "@/actions/launchpad/dashboard";
+import Loading from "../loading/loading";
 import NewProjectModal from "./modal-new-project";
 import ProjectPreview from "./project-preview";
-import Button from "../design/button/button";
-import Loading from "../loading/loading";
-
 import NavbarLaunchpad from "../design/navbar/navvar-launchpad";
+import Button from "../design/button/button";
 
 export default function CreatorDashboard() {
   const session = useSession();
@@ -36,13 +35,8 @@ export default function CreatorDashboard() {
   const [sessionStatus, setSessionStatus] = useState(null);
 
   useEffect(() => {
-    if (!verifiedAddress) return;
-    setVerified(true);
-  }, [verifiedAddress]);
-
-  useEffect(() => {
     if (!sessionStatus) return;
-    if (!session.data) {
+    if (!session.data || !isConnected) {
       localStorage.setItem("tock", "/dashboard");
       router.push("/auth");
     }
@@ -54,18 +48,13 @@ export default function CreatorDashboard() {
   }, [session.status]);
 
   useEffect(() => {
-    fetchAllProjectsByWallet(address).then((res) => {
-      if (res.success === true) setProjects(res.payload);
-      else if (res.success === false) setProjects([]);
-    });
-  }, [isVerified]);
-
-  useEffect(() => {
-    if (!isConnected) {
-      setVerified(false);
-      setVerifiedAddress(null);
+    if (isConnected) {
+      fetchAllProjectsByWallet(address).then((res) => {
+        if (res.success === true) setProjects(res.payload);
+        else if (res.success === false) setProjects([]);
+      });
     }
-  }, [isConnected]);
+  }, []);
 
   function handleShowNewProjectModal() {
     setNewProjectModelShow(true);

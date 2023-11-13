@@ -23,7 +23,7 @@ contract TockableDrop is ERC721AQueryable, Ownable, ReentrancyGuard {
     error UnAuthorized();
     error WithdrawFailed();
     error TritsIsFrozen();
-    error TokenIsTakenBefore();
+    error TokenHasBeenTakenBefore();
     error InvalidQuantity();
 
     /// Events
@@ -143,7 +143,7 @@ contract TockableDrop is ERC721AQueryable, Ownable, ReentrancyGuard {
             unchecked {
                 for (uint256 i = 0; i < _traits.length; i++) {
                     bytes32 tokenHash = createHashFromTraits(_traits[i]);
-                    if (isTaken[tokenHash]) revert TokenIsTakenBefore();
+                    if (isTaken[tokenHash]) revert TokenHasBeenTakenBefore();
                     isTaken[tokenHash] = true;
                 }
             }
@@ -197,7 +197,7 @@ contract TockableDrop is ERC721AQueryable, Ownable, ReentrancyGuard {
             unchecked {
                 for (uint256 i = 0; i < _traits.length; i++) {
                     bytes32 tokenHash = createHashFromTraits(_traits[i]);
-                    if (isTaken[tokenHash]) revert TokenIsTakenBefore();
+                    if (isTaken[tokenHash]) revert TokenHasBeenTakenBefore();
                     isTaken[tokenHash] = true;
                 }
             }

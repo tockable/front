@@ -7,10 +7,16 @@ export default function Socialbar() {
   return (
     <footer className="mt-12 flex flex-row gap-10 md:gap-20 lg:gap-32 justify-center">
       <Link href={SOCIAL.twitter}>
-        <TwitterSvg className="w-6 hover:opacity-50 transition ease-in-out duration-200" />
+        <TwitterSvg
+          color="#3f3f46"
+          className="w-6 hover:opacity-50 transition ease-in-out duration-200"
+        />
       </Link>
       <Link href={SOCIAL.discord}>
-        <DiscordSvg className="w-6 hover:opacity-50 transition ease-in-out duration-200" />
+        <DiscordSvg
+          color="#3f3f46"
+          className="w-6 hover:opacity-50 transition ease-in-out duration-200"
+        />
       </Link>
       {/* <Link href={SOCIAL.mirror}>
         <MirrorSvg className="w-6" />

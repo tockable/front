@@ -11,7 +11,7 @@ import Loading from "../loading/loading";
 import Button from "../design/button/button";
 import CountDown from "../design/timer/timer";
 
-export default function Mintpad({ project, mintAction, abiAction }) {
+export default function Mintpad({ project, prepareMint, abiAction }) {
   // Hooks and Contexts
   const { address, isConnected } = useAccount();
   const { chain } = useNetwork();
@@ -19,13 +19,15 @@ export default function Mintpad({ project, mintAction, abiAction }) {
     useSwitchNetwork();
 
   // States
+
   const [paused, setPaused] = useState(false);
   const [mintEnded, setMintEnded] = useState(false);
   const [untilStart, setUntilStart] = useState(0);
   const [untilEnd, setUntilEnd] = useState(0);
   const [notStarted, setNotStarted] = useState(false);
+  const [blobState, setBlobState] = useState(0);
+
   const [blob, setBlob] = useState(null);
-  const [isSetBlob, setIsSetBlob] = useState(false);
   const [roles, setRoles] = useState();
   const [session, setSession] = useState();
   const [elligibility, setElligibility] = useState(null);
@@ -34,10 +36,6 @@ export default function Mintpad({ project, mintAction, abiAction }) {
   const [abiError, setAbiError] = useState(false);
   const [errorGettingElligibility, setErrorGettingElligibility] =
     useState(false);
-  const [key, setKey] = useState(0);
-  function handleKey() {
-    setKey(key + 1);
-  }
 
   // Effects
   useEffect(() => {
@@ -89,15 +87,15 @@ export default function Mintpad({ project, mintAction, abiAction }) {
     });
   }, [project, isConnected]);
 
-  function handleIsSetBlob() {
-    setIsSetBlob(true);
+  function incrementBlobState() {
+    setBlobState(blobState + 1);
   }
 
   return (
     <main>
       {!project && <Loading isLoading={!project} variant="page" size={20} />}
       {project && (
-        <MintContext.Provider value={{ project, abi }}>
+        <MintContext.Provider value={{ project, abi, setAbi, blob, setBlob }}>
           {notStarted && (
             <div className="mb-8">
               <h1 className="text-center text-tock-green p-2 mt-2">
@@ -120,8 +118,7 @@ export default function Mintpad({ project, mintAction, abiAction }) {
 
           <div className="rounded-2xl p-4 mt-8 bg-tock-semiblack">
             <MintpadDapp
-              isSetBlob={isSetBlob}
-              setBlob={setBlob}
+              blobState={blobState}
               layers={project.layers}
               fileNames={project.fileNames}
               cids={project.cids}
@@ -132,22 +129,18 @@ export default function Mintpad({ project, mintAction, abiAction }) {
                 minting is not available at this moment.
               </p>
             )}
-            {/* {address === project.creator && (
-              <div>
-                <MintpadAdminMintSection
-                  handleBlob={handleIsSetBlob}
-                  mintAction={mintAction}
-                  blob={blob}
-                  abi={abi}
-                />
-              </div>
-            )} */}
-            {!notStarted && !mintEnded && !paused && (
+            {address === project.creator && (
+              <MintpadAdminMintSection
+                incrementBlobState={incrementBlobState}
+                prepareMint={prepareMint}
+              />
+            )}
+            {/* {!notStarted && !mintEnded && !paused && (
               <div className="rounded-2xl p-4 mt-8 bg-tock-semiblack">
                 under maintenance
               </div>
-            )}
-            {/* {!notStarted && !mintEnded && !paused && (
+            )} */}
+            {!notStarted && !mintEnded && !paused && (
               <div>
                 {!isConnected && (
                   <p className="text-tock-orange text-center p-2 border rounded-xl border-zinc-400">
@@ -239,17 +232,13 @@ export default function Mintpad({ project, mintAction, abiAction }) {
                                     available roles for you:
                                   </p>
                                 )}
-                                <div key={key}>
-                                  <MintpadMintSection
-                                    setKey={handleKey}
-                                    handleBlob={handleIsSetBlob}
-                                    roles={roles}
-                                    session={session}
-                                    mintAction={mintAction}
-                                    blob={blob}
-                                    abi={abi}
-                                  />
-                                </div>
+
+                                <MintpadMintSection
+                                  incrementBlobState={incrementBlobState}
+                                  roles={roles}
+                                  session={session}
+                                  prepareMint={prepareMint}
+                                />
                               </div>
                             )}
                           </div>
@@ -269,7 +258,7 @@ export default function Mintpad({ project, mintAction, abiAction }) {
                   </div>
                 )}
               </div>
-            )} */}
+            )}
           </div>
         </MintContext.Provider>
       )}

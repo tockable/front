@@ -1,6 +1,6 @@
 import WagmiProvider from "@/contexts/wagmi-provider";
 import Mintpad from "./mintpad";
-import MintpatProjectDetails from "./mintpad-project-details";
+import MintpadProjectDetails from "./mintpad-project-details";
 import MintpadHeader from "./mintpad-header";
 import getHashAndSignature from "@/actions/signature/signature";
 import storeFileToIpfs from "@/actions/ipfs/uploadFileToIpfs.js";
@@ -8,6 +8,7 @@ import getCidTuple from "@/actions/utils/cid-utils";
 import Footer from "../design/footer";
 import { getContractAbi } from "@/actions/contract/metadata";
 import Socialbar from "../design/social-bar/socialbar";
+import NavbarLaunchpad from "../design/navbar/navvar-launchpad";
 
 async function callGetContractAbi(_creator, _uuid, _projectName) {
   "use server";
@@ -16,8 +17,6 @@ async function callGetContractAbi(_creator, _uuid, _projectName) {
 }
 
 export default async function MintpadLanding({ project }) {
-
-
   async function prepareMint(_address, _roleId, _sessionId, _file) {
     "use server";
 
@@ -52,22 +51,21 @@ export default async function MintpadLanding({ project }) {
     return {
       success: true,
       cid,
-      hash: sigRes.payload.hash,
       signature: sigRes.payload.signature,
     };
   }
-
   return (
     <main>
       <MintpadHeader project={project} />
       {project && (
         <div id="banner" className="flex justify-center">
+          <NavbarLaunchpad />
           <div className="basis-3/4">
-            <MintpatProjectDetails project={project} />
+            <MintpadProjectDetails project={project} />
             <WagmiProvider>
               <Mintpad
                 project={project}
-                mintAction={prepareMint}
+                prepareMint={prepareMint}
                 abiAction={callGetContractAbi}
               />
             </WagmiProvider>

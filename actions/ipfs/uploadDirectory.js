@@ -17,7 +17,6 @@ export default async function uploadDirectoryToIpfs(
       throw new Error("invalid cid");
     return { success: true, cid };
   } catch (err) {
-    console.log(err);
     return await uploadDirectoryToIpfs(_files, retries - 1, err);
   }
 }
@@ -42,6 +41,5 @@ async function _uploadDirectoryToIpfs(_files) {
   const storage = new NFTStorage({ token: NFT_STORAGE_KEY });
   const files = await prepareFiles(_files);
   const cid = await storage.storeDirectory(files);
-  console.log(cid);
   return cid;
 }

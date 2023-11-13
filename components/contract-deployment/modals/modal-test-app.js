@@ -163,7 +163,6 @@ export default function TestAppModal({ onClose, layersFiles, layers }) {
     if (!uploadSuccess) return;
 
     const _traits = createTaits(layers);
-    console.log(_traits);
     setTraits(_traits);
     setUploading(false);
   }

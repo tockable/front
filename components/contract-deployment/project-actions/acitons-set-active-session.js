@@ -86,9 +86,10 @@ export default function ActionSetActiveSession({ abi }) {
                 <label className="grid font-bold grid-cols-3 ml-2 text-xs border border-zinc-400 rounded-2xl p-2 w-full">
                   <p className="text-tock-orange">
                     {session.name}
-                    {Number(session.id) === Number(project.activeSession) && project.activeSession.length > 0 && (
-                      <span className="text-zinc-400"> (active)</span>
-                    )}
+                    {Number(session.id) === Number(project.activeSession) &&
+                      project.activeSession.toString().length > 0 && (
+                        <span className="text-zinc-400"> (active)</span>
+                      )}
                   </p>
                 </label>
               </div>

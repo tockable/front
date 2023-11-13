@@ -1,28 +1,46 @@
+import { useEffect, useState } from "react";
 import Mint from "./mint";
 export default function MintpadMintSection({
-  handleBlob,
+  incrementBlobState,
   roles,
-  mintAction,
+  prepareMint,
   session,
-  abi,
-  blob,
-  setKey,
 }) {
+  const [states, setStates] = useState({});
+
+  useEffect(() => {
+    if (!roles || roles.length === 0) return;
+    const newStates = {};
+    for (let i = 0; i < roles.length; i++) {
+      newStates[roles[i].id] = false;
+    }
+    setStates(newStates);
+  }, [roles]);
+
+  function handleRoleVisibility(_roleId) {
+    const newStates = {};
+    for (let i = 0; i < roles.length; i++) {
+      if (roles[i].id == _roleId) {
+        newStates[roles[i].id] = true;
+      } else {
+        newStates[roles[i].id] = false;
+      }
+      console.log(newStates);
+      setStates(newStates);
+    }
+  }
+
   return (
     <div>
       {roles.map((role, i) => (
-        <div
-          key={"mint-sec-" + i}
-          className="flex grow border border-zinc-400 bg-tock-black rounded-2xl p-4 my-4 mx-4"
-        >
+        <div key={"mint-sec-" + i}>
           <Mint
-            handleBlob={handleBlob}
+            handleRoleVisibility={handleRoleVisibility}
+            incrementBlobState={incrementBlobState}
+            prepareMint={prepareMint}
             role={role}
-            mintAction={mintAction}
+            show={states[role.id]}
             session={session}
-            abi={abi}
-            blob={blob}
-            setKey={setKey}
           />
         </div>
       ))}
