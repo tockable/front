@@ -11,8 +11,12 @@ import { MintContext } from "@/contexts/mint-context";
 import Button from "../design/button/button";
 import Loading from "../loading/loading";
 
+// import decodeCid from "@/actions/utils/decode-cid";
+// import { imageUrlFromBlob } from "@/utils/image-utils";
+
 export default function AdminMint({ prepareMint, incrementBlobState }) {
   const [show, setShow] = useState(false);
+  const { blob } = useContext(MintContext);
 
   function handleClick() {
     setShow(true);
@@ -26,25 +30,34 @@ export default function AdminMint({ prepareMint, incrementBlobState }) {
       >
         <div className="flex flex-col gap-4 w-full">
           <div className="flex flex-row">
-            <div className="flex grow ">
+            <div className="flex-1">
               <p className="text-zinc-400 text-xs items-center">
-                as <span className="text-tock-orange">owner</span> | Max mint
-                per wallet: <span className="text-tock-orange">unlimited</span>
+                as <span className="text-tock-orange text-sm">owner</span> | Max
+                mint/wallet:{" "}
+                <span className="text-tock-orange text-xl">
+                  <sub>&infin;</sub>
+                </span>
               </p>
             </div>
-            <div className="text-tock-green text-xs justify-end">
+            <div className="flex-0 text-tock-green text-xs justify-end">
               {!show && <span>click to expand</span>}
             </div>
           </div>
-          {show && <MintHandler prepareMint={prepareMint} />}
+          {show && (
+            <MintHandler
+              prepareMint={prepareMint}
+              incrementBlobState={incrementBlobState}
+              blob={blob}
+            />
+          )}
         </div>
       </div>
     </div>
   );
 }
 
-function MintHandler({ prepareMint }) {
-  const { abi, blob } = useContext(MintContext);
+function MintHandler({ prepareMint, incrementBlobState, blob }) {
+  const { abi } = useContext(MintContext);
   //   const [quantity, setQuantity] = useState(1);
   //   const debouncedQuantity = useDebounce(quantity, 1000);
   //   function onAmountIncrease(e) {
@@ -67,6 +80,14 @@ function MintHandler({ prepareMint }) {
   //     }
   //     return false;
   //   }
+
+  ///
+  // const [imageUrl, setImageUrl] = useState("");
+  // const [showblob, setShowBlob] = useState(false);
+  // const [ipfsUrl, setIpfsUrl] = useState("");
+  // const [showIpfs, setShowIpfs] = useState(false);
+
+  ///
   const { project } = useContext(MintContext);
   const { address } = useAccount();
 
@@ -147,7 +168,6 @@ function MintHandler({ prepareMint }) {
       setSuccessMint(false);
       return;
     }
-
     setEnableState(true);
   }, [writeArgs]);
 
@@ -218,16 +238,31 @@ function MintHandler({ prepareMint }) {
   }, [wc.isError]);
 
   async function mint() {
+    incrementBlobState();
     if (!blob) return;
     setSuccessMint(false);
     setPreparing(true);
     setPrintedError("");
     setWarning("");
     const file = new FormData();
+    ///
+    ///
+    // const url = imageUrlFromBlob(blob.blob);
+    // setImageUrl(url);
+    // setShowBlob(true);
+    ///
+    ///
     file.append("file", blob.blob);
     const res = await prepareMint(address, 99, 99, file);
     if (res.success === true) {
       const { cid } = res;
+      ///
+      ///
+      // const decoded = decodeCid(cid);
+      // setIpfsUrl(`https://ipfs.io/ipfs/${decoded}`);
+      // setShowIpfs(true);
+      ///
+      ///
       const _args = [1, [cid], [blob.traits]];
       setApiError(false);
       setwriteArgs(_args);
@@ -276,6 +311,8 @@ function MintHandler({ prepareMint }) {
           </div>
         </Button>
       </div>
+      {/* {showIpfs && <img src={ipfsUrl} width={200} />}
+      {showblob && <img src={imageUrl} width={200} />} */}
 
       {printedError.length > 0 && (
         <p className="text-tock-red text-xs">{printedError}</p>

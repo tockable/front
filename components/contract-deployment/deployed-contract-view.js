@@ -1,10 +1,28 @@
 import { useState, useEffect, useContext } from "react";
 import getChainData from "@/utils/chain-utils";
 import { LaunchpadContext } from "@/contexts/project-context";
+// import verify from "@/actions/contract/verify";
+import Button from "../design/button/button";
+import Loading from "../loading/loading";
 
 export default function DeployedContractView() {
-  const { project } = useContext(LaunchpadContext);
+  const { project, setProject } = useContext(LaunchpadContext);
+
   const [chainData, setChainData] = useState();
+  // const [verifying, setVerifying] = useState(false);
+  // const [verificationError, setVerificationError] = useState(false);
+
+  // async function callVerfify() {
+  //   setVerifying(true);
+  //   setVerificationError(false);
+  //   const res = await verify(project);
+  //   if (res.success === true) {
+  //     setProject(res.payload);
+  //   } else {
+  //     setVerificationError(true);
+  //   }
+  //   setVerifying(false);
+  // }
 
   useEffect(() => {
     if (!project) return;
@@ -56,6 +74,38 @@ export default function DeployedContractView() {
             >
               {chainData.scan}
             </a>
+          </section>
+          <section className="mt-2 mb-8">
+            <p className="text-tock-blue font-bold text-sm">verification:</p>
+            {project.isVerified && (
+              <p className="text-tock-green text-sm mt-2"> verified</p>
+            )}
+            {!project.isVerified && (
+              <div>
+                {/* <Button
+                  variant="secondary"
+                  className="mt-2"
+                  onClick={() => callVerfify()}
+                  disabled={verifying}
+                >
+                  {verifying && <Loading isLoading={verifying} size={10} />}
+                  {!verifying && <p>verify contract</p>}
+                </Button> */}
+                <Button
+                  variant="secondary"
+                  className="mt-2"
+                  onClick={() => callVerfify()}
+                  disabled={true}
+                >
+                  verify contract (soon)
+                </Button>
+                {/* {verificationError && (
+                  <p className="text-tock-red text-sm mt-2">
+                    an error occured during verification, please try again.
+                  </p>
+                )} */}
+              </div>
+            )}
           </section>
         </div>
       )}

@@ -6,7 +6,7 @@ import { MintContext } from "@/contexts/mint-context";
 import MintpadMintSection from "./mintpad-mint-section";
 import MintpadAdminMintSection from "./admin-mintpad-section";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
-import MintpadDapp from "./mintpad-mintdapp";
+import MintpadDapp from "./mintpad-mint-app";
 import Loading from "../loading/loading";
 import Button from "../design/button/button";
 import CountDown from "../design/timer/timer";
@@ -164,9 +164,9 @@ export default function Mintpad({ project, prepareMint, abiAction }) {
                     {elligibility && (
                       <div>
                         {chain.id != project.chainData.chainId && (
-                          <div>
+                          <div className="flex justify-center items-center">
                             <Button
-                              className="xs:mt-2 w-64"
+                              className="my-4"
                               variant="warning"
                               type="button"
                               onClick={() =>

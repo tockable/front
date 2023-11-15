@@ -5,7 +5,7 @@ import { hexEncode } from "@/utils/crypto-utils";
 import { MintContext } from "@/contexts/mint-context";
 import Loading from "../loading/loading";
 
-export default function MintpadDapp({ layers, fileNames, cids, blobState }) {
+export default function MintpadDapp({ layers, fileNames, cids }) {
   // Contexts & Hookds
   const { setBlob } = useContext(MintContext);
   // States
@@ -15,6 +15,8 @@ export default function MintpadDapp({ layers, fileNames, cids, blobState }) {
   const [drawing, setDrawing] = useState({});
   const [totalCount, setTotalCount] = useState(0);
   const [percentage, setPercentage] = useState(0);
+  const [canvasWidth, setCanvasWidth] = useState(0);
+  const [canvasHeight, setCanvasHeight] = useState(0);
 
   // Refs
   const ctx = useRef(null);
@@ -29,22 +31,24 @@ export default function MintpadDapp({ layers, fileNames, cids, blobState }) {
     setTotalCount(len);
   }, [fileNames]);
 
-  useEffect(() => {
-    if (blobState === 0) return;
+  // useEffect(() => {
+  //   console.log(blobState);
+  //   if (blobState === 0) return;
 
-    const traits = [];
-    for (let i = 0; i < layers.length; i++) {
-      const trait_type = toHex(layers[i]);
-      const selectedLayer = assets[i];
-      const _value = selectedLayer[drawing[i]].name;
-      console.log(_value)
-      const value = toHex(_value.slice(0, _value.length - 4));
-      traits.push({ trait_type, value });
-    }
-    canvas.current.toBlob((blob) => {
-      setBlob({ blob, traits });
-    });
-  }, [blobState]);
+  //   const traits = [];
+  //   for (let i = 0; i < layers.length; i++) {
+  //     const trait_type = toHex(layers[i]);
+  //     const selectedLayer = assets[i];
+  //     const _value = selectedLayer[drawing[i]].name;
+  //     console.log(_value);
+  //     const value = toHex(_value.slice(0, _value.length - 4));
+  //     traits.push({ trait_type, value });
+  //   }
+  //   canvas.current.toBlob((blob) => {
+  //     console.log(blob);
+  //     setBlob({ blob, traits });
+  //   });
+  // }, [blobState]);
 
   useEffect(() => {
     if (totalCount == 0) return;
@@ -54,11 +58,18 @@ export default function MintpadDapp({ layers, fileNames, cids, blobState }) {
       const layerFileNames = fileNames[i];
       for (let j = 0; j < layerFileNames.length; j++) {
         let img = new Image();
-        img.onload = imageLoaded;
+        img.onload = () => {
+          imageLoaded();
+          if (canvasHeight === 0 || canvasWidth === 0) {
+            setCanvasWidth(img.naturalWidth);
+            setCanvasHeight(img.naturalHeight);
+          }
+        };
         img.error = (e) =>
           (e.target.src = `https://${cids[i]}.${NFT_STORAGE_GATEWAY}/${layerFileNames[j]}`);
         img.src = `${IPFS_GATEWAY}/${cids[i]}/${layerFileNames[j]}`;
         img.crossOrigin = "Anonymous";
+
         images.push({ img, name: layerFileNames[j] });
       }
       _assets[i] = images;
@@ -69,10 +80,22 @@ export default function MintpadDapp({ layers, fileNames, cids, blobState }) {
   useEffect(() => {
     if (!built) return;
     redraw();
+    const traits = [];
+    for (let i = 0; i < layers.length; i++) {
+      const trait_type = toHex(layers[i]);
+      const selectedLayer = assets[i];
+      const _value = selectedLayer[drawing[i]].name;
+      const value = toHex(_value.slice(0, _value.length - 4));
+      traits.push({ trait_type, value });
+    }
+    canvas.current.toBlob((blob) => {
+      setBlob({ blob, traits });
+    });
   }, [drawing]);
 
   useEffect(() => {
     if (!loaded) return;
+    if (canvasHeight === 0 || canvasWidth === 0) return;
     if (canvas.current) return;
     let _canvas = document.getElementById("app-canvas");
     canvas.current = _canvas;
@@ -81,7 +104,14 @@ export default function MintpadDapp({ layers, fileNames, cids, blobState }) {
     for (let layer in assets) newDrawing[layer] = 0;
     setDrawing(newDrawing);
     setBuilt(true);
-  }, [loaded]);
+  }, [loaded, canvasHeight, canvasWidth]);
+
+  useEffect(() => {
+    if (canvasWidth === 0 || canvasHeight === 0) return;
+    if (!canvas.current) return;
+    (canvas.current.width = canvasWidth),
+      (canvas.current.height = canvasHeight);
+  }, [canvasHeight, canvasWidth]);
 
   // Functions
   function redraw() {
@@ -149,12 +179,14 @@ export default function MintpadDapp({ layers, fileNames, cids, blobState }) {
       {loaded && (
         <div className="flex flex-col lg:flex-row-reverse justify-center w-full">
           <div className="flex justify-center">
-            <canvas
-              id="app-canvas"
-              className="rounded-xl mt-4 border border-zinc-500 mb-2 w-[350px] h-[350px] object-contain"
-              width={1000}
-              height={1000}
-            ></canvas>
+            {canvasWidth > 0 && canvasHeight > 0 && (
+              <canvas
+                id="app-canvas"
+                className="rounded-xl mt-4 border border-zinc-500 mb-2 w-[350px] h-[350px] object-contain"
+                width={canvasWidth}
+                height={canvasHeight}
+              ></canvas>
+            )}
           </div>
           {built && (
             <div className="mb-6 mt-2 px-10">

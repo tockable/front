@@ -18,7 +18,7 @@ export default function Navbar() {
           <TockableLogo />
         </svg>
       </div>
-      <span className="ml-[5.5rem] top-9 fixed text-white font-bold z-10 invisible lg:visible">
+      <span className="ml-[5.5rem] top-9 fixed text-white font-bold z-10 hidden lg:block">
         Tockable
       </span>
       <div className="flex flex-row justify-center">

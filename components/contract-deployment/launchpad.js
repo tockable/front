@@ -27,7 +27,7 @@ const pages = [
 
 function NotDeployedYet() {
   return (
-    <div className="flex justify-center align-items h-24 text-tock-orange">
+    <div className="flex justify-center items-center h-24 text-tock-orange">
       you need to deploy your contract first
     </div>
   );
@@ -61,7 +61,7 @@ export default function Launchpad() {
                   } 
              ${
                activePage === page ? "" : "hover:bg-tock-semiblack"
-             } transition ease-in-out duration-300 rounded-2xl h-10 border border-zinc-700`}
+             } transition ease-in-out duration-300 rounded-xl h-10 border border-zinc-700`}
                   key={page}
                   onClick={() => setActivePage(page)}
                 >
@@ -86,7 +86,7 @@ export default function Launchpad() {
                     {isConnected && (
                       <button
                         onClick={() => handleSignout()}
-                        className="p-8 mx-1 text-center transition ease-in-out duration-300 text-gray-500 hover:text-tock-red font-bold py-2 px-4 focus:outline-none focus:shadow-outline active:text-tock-red flex-auto"
+                        className="p-8 mx-1 text-center transition ease-in-out text-sm duration-300 text-gray-500 hover:text-tock-red py-2 px-4 focus:outline-none focus:shadow-outline active:text-tock-red flex-auto"
                       >
                         sign out
                       </button>

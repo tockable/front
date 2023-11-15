@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import addToRegistery from "@/actions/wait-list/regsitery";
 import Fade from "@/components/design/fade/fade";
+import Button from "../design/button/button";
 
 export default function Register() {
   const [email, setEmail] = useState("");
@@ -80,16 +81,18 @@ export default function Register() {
               />
             </div>
 
-            <button
-              className="transition ease-in-out mr-4 hover:bg-tock-darkgreen duration-300 bg-tock-green text-tock-semiblack font-bold py-2 px-4 rounded-2xl focus:outline-none focus:shadow-outline active:text-white"
-              type="button"
-              disabled={submitting}
-              onClick={() => {
-                register();
-              }}
-            >
-              Join Tockable!
-            </button>
+            <div className="flex justify-center sm:justify-start">
+              <Button
+                variant="primary"
+                type="button"
+                disabled={submitting}
+                onClick={() => {
+                  register();
+                }}
+              >
+                Join Tockable!
+              </Button>
+            </div>
 
             {/* </div> */}
             {showWarnings && (

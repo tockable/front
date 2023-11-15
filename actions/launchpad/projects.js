@@ -298,7 +298,9 @@ export async function unPublishProject(_uuid, _creator) {
 
     const json = fs.readFileSync(publishedProjectPath, { encoding: "utf8" });
     const publishedProjects = JSON.parse(json);
-    const publishedInd = projects.findIndex((p) => p.uuid === _uuid);
+    const publishedInd = projects.findIndex(
+      (p) => p.slug.toLowerCase() === projects.slug.toLowerCase()
+    );
 
     publishedProjects.splice(publishedInd, 1);
 
@@ -425,6 +427,28 @@ export async function setMintPaused(_creator, _uuid) {
   }
   try {
     projects[ind].paused = true;
+    await fs.promises.writeFile(projectsPath, JSON.stringify(projects));
+
+    return {
+      success: true,
+      payload: projects[ind],
+      message: "mint status updated!",
+    };
+  } catch (err) {
+    return { success: false, message: err.message };
+  }
+}
+
+export async function updateIsVerified(_creator, _uuid) {
+  const projectsPath = getProjectDirectory(_creator);
+  const json = fs.readFileSync(projectsPath, { encoding: "utf8" });
+  const projects = JSON.parse(json);
+  const ind = projects.findIndex((p) => p.uuid === _uuid);
+  if (_creator.toLowerCase() !== projects[ind].creator.toLowerCase()) {
+    return { success: false, message: "forbidden" };
+  }
+  try {
+    projects[ind].isVerified = true;
     await fs.promises.writeFile(projectsPath, JSON.stringify(projects));
 
     return {

@@ -88,7 +88,6 @@ export function getProjectDataDirectory(_creator) {
  * @returns
  */
 export function getBuildDirectory(_project) {
-  console.log(_project.creator);
   const dir = _project.creator.slice(2, 42);
   const buildDirectory = path.resolve(
     ".",

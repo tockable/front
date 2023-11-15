@@ -27,7 +27,7 @@ contract TockableDrop is ERC721AQueryable, Ownable, ReentrancyGuard {
     error InvalidQuantity();
 
     /// Events
-    event ethReceived(address, uint256);
+    event tokenReceived(address, uint256);
 
     /// Structs
     struct IpfsHash {
@@ -69,6 +69,8 @@ contract TockableDrop is ERC721AQueryable, Ownable, ReentrancyGuard {
     bool public isMintLive = false;
     bool public isTraitsFrozen = false;
     uint256 activeSession;
+    uint256 rolesLength;
+    uint256 sessionsLength;
 
     /// Mappings
     mapping(uint256 => uint256) mintedInSessionById;
@@ -77,25 +79,36 @@ contract TockableDrop is ERC721AQueryable, Ownable, ReentrancyGuard {
     mapping(uint256 => Session) getSessionById;
     mapping(uint256 => IpfsHash) ipfsHashOf;
     mapping(uint256 => mapping(bytes32 => bytes32)) traitValueOfTraitTypeOf;
-    mapping(bytes32 => bool) isTaken;
+    mapping(bytes32 => bool) hasBeenTaken;
 
     /// setters
     function setRoles(Role[] calldata _roles) external onlyOwner {
         if (_roles.length == 0) revert InvalidArgs();
+        if (rolesLength > 0) {
+            if (rolesLength > _roles.length) {}
+            revert InvalidArgs();
+        }
         unchecked {
             for (uint256 i = 0; i < _roles.length; i++) {
                 getRoleById[i] = _roles[i];
             }
         }
+        if (rolesLength < _roles.length) rolesLength = _roles.length;
     }
 
     function setSessions(Session[] calldata _sessions) external onlyOwner {
         if (_sessions.length == 0) revert InvalidArgs();
+        if (sessionsLength > 0) {
+            if (sessionsLength > _sessions.length) {}
+            revert InvalidArgs();
+        }
         unchecked {
             for (uint256 i = 0; i < _sessions.length; i++) {
                 getSessionById[i] = _sessions[i];
             }
         }
+        if (sessionsLength < _sessions.length)
+            sessionsLength = _sessions.length;
     }
 
     function setMintIsLive(bool _status) public onlyOwner {
@@ -143,8 +156,9 @@ contract TockableDrop is ERC721AQueryable, Ownable, ReentrancyGuard {
             unchecked {
                 for (uint256 i = 0; i < _traits.length; i++) {
                     bytes32 tokenHash = createHashFromTraits(_traits[i]);
-                    if (isTaken[tokenHash]) revert TokenHasBeenTakenBefore();
-                    isTaken[tokenHash] = true;
+                    if (hasBeenTaken[tokenHash])
+                        revert TokenHasBeenTakenBefore();
+                    hasBeenTaken[tokenHash] = true;
                 }
             }
         }
@@ -197,8 +211,9 @@ contract TockableDrop is ERC721AQueryable, Ownable, ReentrancyGuard {
             unchecked {
                 for (uint256 i = 0; i < _traits.length; i++) {
                     bytes32 tokenHash = createHashFromTraits(_traits[i]);
-                    if (isTaken[tokenHash]) revert TokenHasBeenTakenBefore();
-                    isTaken[tokenHash] = true;
+                    if (hasBeenTaken[tokenHash] == true)
+                        revert TokenHasBeenTakenBefore();
+                    hasBeenTaken[tokenHash] = true;
                 }
             }
         }
@@ -332,7 +347,7 @@ contract TockableDrop is ERC721AQueryable, Ownable, ReentrancyGuard {
     }
 
     receive() external payable {
-        emit ethReceived(msg.sender, msg.value);
+        emit tokenReceived(msg.sender, msg.value);
     }
 
     /// Helpers & Utils

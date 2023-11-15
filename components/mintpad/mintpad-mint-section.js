@@ -25,7 +25,6 @@ export default function MintpadMintSection({
       } else {
         newStates[roles[i].id] = false;
       }
-      console.log(newStates);
       setStates(newStates);
     }
   }

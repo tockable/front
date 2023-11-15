@@ -55,41 +55,48 @@ export default function DeployContractModal({ onClose, contract }) {
       const client = await getWalletClient({
         chainId: Number(project.chainId),
       });
+
       const hash = await client.deployContract({
         ...contract,
         account: address,
         args: [TOCKABLE_ADDRESS, signer],
       });
+
       if (hash) {
         txhash.current = hash;
       } else {
         setTakeMoment(false);
         setSuccess("");
-        setError("deployment failed, please try again.");
+        setError("deployment failed at sending tx stage, please try again.");
         return;
       }
+
       const publicClient = getPublicClient({
         chainId: Number(project.chainId),
       });
+
       const reciept = await publicClient.waitForTransactionReceipt({ hash });
+
       if (reciept) {
         settxreciept(reciept);
-        const res = await updateDeployStatus(
+
+        const signerRes = await upddateProjectSigner(
           project.uuid,
           project.creator,
-          reciept.contractAddress
+          signer
         );
-        if (res.success === true) {
-          const signerRes = await upddateProjectSigner(
+
+        if (signerRes.success === true) {
+          const res = await updateDeployStatus(
             project.uuid,
             project.creator,
-            signer
+            reciept.contractAddress
           );
-          if (signerRes.success === true) {
-            if (error.length > 0) setError("");
+          if (res.success === true) {
+            setError("");
             setSuccess("contract deployed successfully!");
             setTakeMoment(false);
-            setProject(signerRes.payload);
+            setProject(res.payload);
           } else {
             setTakeMoment(false);
             setSuccess("");
@@ -100,10 +107,11 @@ export default function DeployContractModal({ onClose, contract }) {
       } else {
         setTakeMoment(false);
         setSuccess("");
-        setError("deployment failed, please try again.");
+        setError("deployment tx failed, please try again.");
         return;
       }
     } catch (err) {
+      console.log(err);
       if (
         err.message.match(/^User rejected the request./g) ||
         err.message.match(
@@ -113,7 +121,7 @@ export default function DeployContractModal({ onClose, contract }) {
       ) {
         setError("Rejected by user.");
       } else {
-        setError("An rror occured");
+        setError("wallet error occured");
       }
       setTakeMoment(false);
       setSuccess("");

@@ -40,38 +40,41 @@ async function _store(buffer, mimeType, fileName, retries) {
   const img = fileFromBuffer(buffer, mimeType, fileName);
 
   let existance = false;
-  let ccid = "";
-  if (retries === MAX_RETRIES) {
-    const { _cid, _existance } = await checkExistance(img);
-    existance = _existance;
-    ccid = _cid;
-  }
+  // let ccid = "";
+  // if (retries === MAX_RETRIES) {
+  //   const { _cid, _existance } = await checkExistance(nftstorage, img);
+  //   existance = _existance;
+  //   ccid = _cid;
+  // }
 
   if (!existance) {
     const cid = await nftstorage.storeBlob(img);
     return { cid, existance };
   }
 
-  if (existance) {
-    return { cid: ccid, existance };
-  }
+  // if (existance) {
+  //   return { cid: ccid, existance };
+  // }
 }
 
 function fileFromBuffer(buffer, type, fileName) {
   return new File([buffer], fileName, { type: type });
 }
 
-async function checkExistance(_client, _file) {
-  try {
-    const { cid } = await NFTStorage.encodeBlob(_file);
-    const status = await _client.check(cid);
+// async function checkExistance(_client, _file) {
+//   try {
+//     console.log(_file);
+//     const { cid } = await NFTStorage.encodeBlob(_file);
+//     const status = await _client.check(cid);
 
-    if (status.pin.status === "pinned") {
-      return { _cid: status.pin.cid, _existance: true };
-    } else {
-      throw new Error("not pinned");
-    }
-  } catch (err) {
-    return { _cid: null, _existance: false };
-  }
-}
+//     if (status.pin.status === "pinned") {
+//       console.log(status);
+//       return { _cid: status.pin.cid, _existance: true };
+//     } else {
+//       throw new Error("not pinned");
+//     }
+//   } catch (err) {
+//     console.log(err);
+//     return { _cid: null, _existance: false };
+//   }
+// }

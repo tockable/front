@@ -17,3 +17,5 @@ export default function getCidTuple(_cid) {
   const hexPart2 = "0x" + encodedPart2;
   return { part1: hexPart1, part2: hexPart2 };
 }
+
+

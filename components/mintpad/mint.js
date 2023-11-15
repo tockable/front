@@ -24,6 +24,7 @@ export default function Mint({
     incrementBlobState();
     handleRoleVisibility(role.id);
   }
+  const { blob, project } = useContext(MintContext);
   return (
     <div className="w-full">
       <div
@@ -32,20 +33,25 @@ export default function Mint({
       >
         <div className="flex flex-col gap-4 w-full">
           <div className="flex flex-row">
-            <div className="flex grow ">
+            <div className="flex-1">
               <p className="text-zinc-400 text-xs items-center">
-                as <span className="text-tock-orange">{role.name}</span> | Max
-                mint per wallet:{" "}
-                <span className="text-tock-orange">{role.quota}</span>
+                as <span className="text-tock-orange text-sm">{role.name}</span>{" "}
+                | max mint/wallet:{" "}
+                <span className="text-tock-orange">{role.quota}</span> | price:{" "}
+                <span className="text-tock-orange">
+                  {Number(role.price) + Number(BASE_FEE)}{" "}
+                  {project.chainData.nativeToken}
+                </span>
               </p>
             </div>
-            <div className="text-tock-green text-xs justify-end">
-              {!show && <span>click to expand</span>}
+            <div className="flex-0 text-tock-green text-xs justify-end">
+              {!show && <p className="">click to expand</p>}
             </div>
           </div>
 
           {show && (
             <MintHandler
+              blob={blob}
               role={role}
               session={session}
               prepareMint={prepareMint}
@@ -57,8 +63,8 @@ export default function Mint({
   );
 }
 
-function MintHandler({ role, prepareMint, session }) {
-  const { abi, blob } = useContext(MintContext);
+function MintHandler({ role, prepareMint, session, blob, nativeToken }) {
+  const { abi, project } = useContext(MintContext);
   //   const [quantity, setQuantity] = useState(1);
   //   const debouncedQuantity = useDebounce(quantity, 1000);
   //   function onAmountIncrease(e) {
@@ -82,7 +88,6 @@ function MintHandler({ role, prepareMint, session }) {
   //     return false;
   //   }
   const price = parseEther((Number(role.price) + BASE_FEE).toString(), "wei");
-  const { project } = useContext(MintContext);
   const { address } = useAccount();
 
   const [successMint, setSuccessMint] = useState(false);
@@ -290,7 +295,8 @@ function MintHandler({ role, prepareMint, session }) {
         >
           {!wc.isLoading && !uwt.isLoading && !preparing && (
             <p className="text-sm">
-              Mint THIS for {Number(role.price) + BASE_FEE} ETH
+              Mint THIS for {Number(role.price) + BASE_FEE}{" "}
+              {project.chainData.nativeToken}
             </p>
           )}
           <div>

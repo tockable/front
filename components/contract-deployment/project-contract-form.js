@@ -181,6 +181,7 @@ export default function ProjectContractForm() {
         updated = true;
         setProject(res.payload);
       } else {
+        setTakeMoment(false);
         setFailed(true);
         setSaving(false);
         setDeploying(false);
@@ -199,6 +200,7 @@ export default function ProjectContractForm() {
         setContarctCreated(true);
         setAbiReady(true);
       } else {
+        setTakeMoment(false);
         setFailed(true);
         setErrorMessage("something wrong in our side, please try again");
         setSaving(false);

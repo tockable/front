@@ -5,7 +5,6 @@ import fs from "fs";
 import { base58btc } from "multiformats/bases/base58";
 import { regex } from "@/constants/regex";
 import { getProjectMetadataPath } from "../utils/path-utils";
-import { camelize } from "@/utils/string-utils";
 
 async function getComputedCidFromBytecode(_bytecode) {
   const extracedBytecode = _bytecode
