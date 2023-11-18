@@ -8,9 +8,9 @@ export default function page() {
   return (
     <main className="h-screen bg-tock-black">
       <NavbarHome />
-      <div id="banner" className="h-screen mt-20">
+      <div id="banner" className="h-screen mt-20 mb-20">
         <TockBanner />
-        <h1 className="h-32 text-zinc-300 mt-4 font-bold text-2xl text-center">
+        <h1 className="h-32 text-zinc-300 mt-4font-bold text-2xl text-center">
           unlocking onchain possibilities for Web3 & NFT enthusiasts.
         </h1>
       </div>
@@ -18,7 +18,7 @@ export default function page() {
         power of choice
       </h1> */}
       <div className="flex flex-col items-center gap-10 md:p-4 justify-center md:flex-row mt-10">
-        <div className="border-2 border-tock-orange rounded-xl p-4 w-11/12 md:w-1/2 h-40">
+        <div className="border-2 border-tock-orange rounded-xl p-4 w-11/12 md:w-1/2 h-44">
           <h1 className="text-tock-green font-bold text-2xl mb-2">
             <span className="text-tock-red">no more</span> random JPGs
           </h1>
@@ -27,7 +27,7 @@ export default function page() {
             generation of NFTs with Tockable.
           </p>
         </div>
-        <div className="border-2 border-tock-orange rounded-xl p-4 w-11/12 md:w-1/2 h-40">
+        <div className="border-2 border-tock-orange rounded-xl p-4 w-11/12 md:w-1/2 h-44">
           <h1 className="text-tock-green font-bold text-2xl mb-2">
             returning <span className="text-tock-red">power</span> to minters
           </h1>
@@ -39,7 +39,7 @@ export default function page() {
       </div>
 
       <div className="flex flex-col items-center gap-10 md:p-4 justify-center md:flex-row mt-10 mb-44">
-      <div className="border-2 border-tock-orange rounded-xl p-4 w-11/12 md:w-1/2 h-40">
+      <div className="border-2 border-tock-orange rounded-xl p-4 w-11/12 md:w-1/2 h-44">
           <h1 className="text-tock-green font-bold text-2xl mb-2">
           <span className="text-tock-red">zero-code</span> for creators
           </h1>
@@ -48,7 +48,7 @@ export default function page() {
             their own dynamic-mintable collection.
           </p>
         </div>
-        <div className="border-2 border-tock-orange rounded-xl p-4 w-11/12 md:w-1/2 h-40">
+        <div className="border-2 border-tock-orange rounded-xl p-4 w-11/12 md:w-1/2 h-44">
           <h1 className="text-tock-green font-bold text-2xl mb-2">
             learn about tockable
           </h1>
