@@ -113,6 +113,7 @@ export default function TestAppModal({ onClose, layersFiles, layers }) {
       layerFilesNames,
       sortedCids
     ).then((res) => {
+      console.log(res);
       if (res.success === true) {
         setSuccessOnIpfs(true);
         setProject(res.payload);
@@ -125,6 +126,8 @@ export default function TestAppModal({ onClose, layersFiles, layers }) {
 
   useEffect(() => {
     if (!isError) {
+      setTraits([]);
+      setErrorOnIpfs(true);
     }
   }, [isError]);
 
@@ -193,9 +196,7 @@ export default function TestAppModal({ onClose, layersFiles, layers }) {
     let ctx = _canvas.getContext("2d");
     setCtx(ctx);
     let newDrawing = {};
-    for (let layer in assets) {
-      newDrawing[layer] = 0;
-    }
+    for (let layer in assets) newDrawing[layer] = 0;
     setDrawing(newDrawing);
     setBuilt(true);
   }, [loaded]);
@@ -236,9 +237,7 @@ export default function TestAppModal({ onClose, layersFiles, layers }) {
 
   function redraw() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    for (let layer in drawing) {
-      drawImage(layer);
-    }
+    for (let layer in drawing) drawImage(layer);
   }
 
   async function build() {
@@ -261,7 +260,7 @@ export default function TestAppModal({ onClose, layersFiles, layers }) {
     }
   }
 
-  function imageLoaded(e) {
+  function imageLoaded(_) {
     loadedCount.current = loadedCount.current + 1;
     if (loadedCount.current === totalCount.current) {
       setLoaded(true);
@@ -307,7 +306,8 @@ export default function TestAppModal({ onClose, layersFiles, layers }) {
                       uploading to ipfs...
                     </h1>
                     <p className="text-tock-orange text-xs font-normal mb-6">
-                      please do not close this window...
+                      depending on your files size, it may take 5 to 30 minutes,
+                      please do not close this window ...
                     </p>
                     <p className="text-center text-tock-green mb-2 text-xs font-normal">
                       {Math.ceil((uploaded * 100) / layers.length)}%
@@ -447,12 +447,18 @@ export default function TestAppModal({ onClose, layersFiles, layers }) {
                             onClick={() => {
                               deploy();
                             }}
-                            disabled={isLoading}
+                            disabled={isLoading || uwt.isLoading}
                             variant="primary"
                           >
-                            {!isError && !isLoading && <p>deploy</p>}
+                            {!isError &&
+                              !isLoading &&
+                              !uwt.isLoading &&
+                              !uwt.isError && <p>deploy</p>}
                             {isLoading && (
-                              <Loading isLoading={isLoading} size={10} />
+                              <Loading
+                                isLoading={isLoading || !uwt.isLoading}
+                                size={10}
+                              />
                             )}
                           </Button>
                           {isError && (
@@ -616,12 +622,12 @@ function IpfsStatus({ cids, layers, retry, last }) {
 function createTaits(_layers) {
   const _traits = [];
   for (let i = 0; i < _layers.length; i++) {
-    let _bytes = hexEncode(_layers[i]);
-    let zeroPaddingLen = 64 - _bytes.length;
+    let bytes = hexEncode(_layers[i]);
+    let zeroPaddingLen = 64 - bytes.length;
     for (let i = 0; i < zeroPaddingLen; i++) {
-      _bytes = _bytes + "0";
+      bytes = bytes + "0";
     }
-    const hex = "0x" + _bytes;
+    const hex = "0x" + bytes;
     _traits.push(hex);
   }
   return _traits;

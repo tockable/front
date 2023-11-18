@@ -1,5 +1,6 @@
 import Link from "next/link";
 import MintpadSocialbar from "../design/mintpad-socialbar/mintpad-socialbar";
+
 export default function MintpadProjectDetails({ project }) {
   return (
     <div className="flex flex-col lg:flex-row items-center">
@@ -18,7 +19,9 @@ export default function MintpadProjectDetails({ project }) {
         <div className="bg-zinc-800 bg-opacity-70 p-4 border rounded-2xl border-zinc-400">
           <p className="text-sm text-zinc-400">{project.description}</p>
         </div>
-        <MintpadSocialbar project={project} />
+        {(project.twitter.length > 0 ||
+          project.discord.length > 0 ||
+          project.website.length > 0) && <MintpadSocialbar project={project} />}
         <article className="text-xs mt-4">
           <p className="text-zinc-400 my-2">
             Total supply:{" "}

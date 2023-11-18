@@ -18,6 +18,7 @@ import {
   baseGoerli,
   optimismGoerli,
 } from "wagmi/chains";
+import { alchemyProvider } from "wagmi/providers/alchemy";
 import { publicProvider } from "wagmi/providers/public";
 import AuthContext from "@/contexts/auth-context";
 
@@ -32,7 +33,10 @@ const { chains, publicClient } = configureChains(
     baseGoerli,
     optimismGoerli,
   ],
-  [publicProvider()]
+  [
+    alchemyProvider({ apiKey: "MVCz115Qsc4sCAi0oWh8JDpZc33OQTyp" }),
+    publicProvider(),
+  ]
 );
 
 const { connectors } = getDefaultWallets({

@@ -5,7 +5,8 @@ import { regex } from "@/constants/regex";
 import { updateProjectContract } from "@/actions/launchpad/projects";
 import { LaunchpadContext } from "@/contexts/project-context";
 import { createAndCompile } from "@/actions/contract/compile";
-import { getContractAbiAndBytecode } from "@/actions/contract/metadata";
+// import { getContractAbiAndBytecode } from "@/actions/contract/metadata";
+import { getContractBytecode } from "@/actions/contract/metadata";
 import DeployContractModal from "./modals/modal-deploy";
 import LabeledInput from "../design/labeled-input/labeled-input";
 import Loading from "../loading/loading";
@@ -13,7 +14,8 @@ import Button from "../design/button/button";
 
 export default function ProjectContractForm() {
   // Contexts
-  const { project, setProject, setAbi } = useContext(LaunchpadContext);
+  const { project, setProject, callGetContractAbi } =
+    useContext(LaunchpadContext);
   const { address } = useAccount();
   const { chain } = useNetwork();
   const { error, isLoading, pendingChainId, switchNetwork } =
@@ -34,14 +36,17 @@ export default function ProjectContractForm() {
   const [duplicateVerificationDisable, setDuplicateVerificationDisable] =
     useState(false);
   const [abiReady, setAbiReady] = useState(false);
-  const [abiAndBytecode, setAbiAndByecode] = useState();
+  const [bytecode, setBytecode] = useState("");
+  const [readyToDeploy, setReadyToDeploy] = useState(false);
 
   // Form states
   const [tokenName, setTokenName] = useState(project.tokenName);
   const [tokenSymbol, setTokenSymbol] = useState(project.tokenSymbol);
   const [isUnlimited, setIsUnlimited] = useState(project.isUnlimited);
   const [totalSupply, setTotalSupply] = useState(Number(project.totalSupply));
-  const [duplicateVerification, setDuplicateVerification] = useState(false);
+  const [duplicateVerification, setDuplicateVerification] = useState(
+    project.duplicateVerification
+  );
   const [firstTokenId, setFirstTokenId] = useState(
     Number(project.firstTokenId)
   );
@@ -52,27 +57,43 @@ export default function ProjectContractForm() {
 
   useEffect(() => {
     if (!contractCreated) return;
-    if (!abiReady) return;
-    getContractAbiAndBytecode(project.creator, project.uuid, project.name).then(
-      (res) => {
-        if (res.success === true) {
-          setAbiAndByecode(res.contract);
-          setAbi(res.contract.abi);
-        } else {
-          setAbiReady(false);
-          setTakeMoment(false);
-          setErrorMessage("an error occured, please try again");
-          setDeploying(false);
-          setSaving(false);
-        }
+    if (!abiReady) {
+      setReadyToDeploy(false);
+      return;
+    }
+    callGetContractAbi().then((res) => {
+      if (res.success === true) {
+        getContractBytecode(project.creator, project.uuid, project.name).then(
+          (res) => {
+            if (res.success === true) {
+              setBytecode(res.bytecode);
+              setReadyToDeploy(true);
+            } else {
+              readyToDeploy(false);
+              setAbiReady(false);
+              setTakeMoment(false);
+              setErrorMessage("an error occured, please try again");
+              setDeploying(false);
+              setSaving(false);
+            }
+          }
+        );
+      } else {
+        readyToDeploy(false);
+        setAbiReady(false);
+        setTakeMoment(false);
+        setErrorMessage("an error occured, please try again");
+        setDeploying(false);
+        setSaving(false);
       }
-    );
+    });
   }, [abiReady]);
 
   useEffect(() => {
-    if (!abiAndBytecode) return;
+    if (bytecode.length === 0) return;
+    if (!readyToDeploy) return;
     handleShowDeployModalContract();
-  }, [abiAndBytecode]);
+  }, [readyToDeploy, bytecode]);
 
   function updateNeeded() {
     if (
@@ -260,6 +281,7 @@ export default function ProjectContractForm() {
   }
 
   function handleCloseDeployModalContract() {
+    setReadyToDeploy(false);
     setAbiReady(false);
     setTakeMoment(false);
     setSaving(false);
@@ -277,7 +299,7 @@ export default function ProjectContractForm() {
         {showDeployContractModal && (
           <DeployContractModal
             onClose={handleCloseDeployModalContract}
-            contract={abiAndBytecode}
+            bytecode={bytecode}
           />
         )}
       </div>

@@ -46,20 +46,20 @@ export default function ProjectPublish() {
       </h1>
       {project.slug == 0 && (
         <p className="text-tock-orange text-xs font-normal my-4">
-          -to be able to publish the project, you should choose a slug in "
+          -for publishing the project, you should choose a slug in "
           <span className="text-tock-green">Details</span>" secion.
         </p>
       )}
       {project.sessions.length == 0 && (
         <p className="text-tock-orange text-xs font-normal my-4">
-          -to be able to publish the project, you should at least add a session
-          for minting.
+          -for publishing the project, you should at least add a session for
+          minting.
         </p>
       )}
 
       {project.roles.length == 0 && (
         <p className="text-tock-orange text-xs font-normal my-4">
-          -to be able to publish the project, you should at least add a role for
+          -for publishing the project, you should at least add a role for
           minting.
         </p>
       )}
@@ -69,7 +69,7 @@ export default function ProjectPublish() {
           <div>
             {!project.isPublished && (
               <div>
-                <p className="text-tock-orange text-xs my-2">
+                <p className="text-tock-orange text-xs my-4">
                   status: unpublished
                 </p>
                 <p className="text-sm text-zinc-400 mb-10 mt-2">
@@ -80,7 +80,7 @@ export default function ProjectPublish() {
             )}
             {project.isPublished && (
               <div>
-                <p className="text-tock-green text-xs my-2">
+                <p className="text-tock-green text-xs my-4">
                   status: published
                 </p>
                 <p className="text-sm text-zinc-400 mb-10 mt-2">
@@ -91,6 +91,17 @@ export default function ProjectPublish() {
                   >
                     {`https://tockable.xyz/c/${project.slug}`}
                   </Link>
+                </p>
+                <p className="text-sm text-zinc-400 mb-10 mt-4">
+                  <span className="text-tock-orange font-bold">IMPRTANT:</span>{" "}
+                  don't forget to set the active session at the times you
+                  specified from the{" "}
+                  <span className="text-blue-400">
+                    "actions" -&gt; "set active session"
+                  </span>
+                  , otherwise your mint will not be activated. Currently, the
+                  platform does not do this automatically, but we are working on
+                  it.
                 </p>
               </div>
             )}

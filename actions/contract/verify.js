@@ -94,7 +94,6 @@ export default async function verify(_project) {
         throw new Error("not verified");
       }
     } else {
-      console.log(data);
       throw new Error("not fetched");
     }
   } catch (err) {

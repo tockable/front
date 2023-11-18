@@ -14,8 +14,7 @@ export default function ProjectMetadataFrom() {
   const [layerToDelete, setLayerToDelete] = useState(null);
   const [layerToRename, setLayerToRename] = useState(null);
   const [key, setKey] = useState(0);
-
-  //Error
+  // Error
   const [emptyLayerError, setEmptyLayerError] = useState(false);
   // Modals
   const [newMetadataModalShow, setNewMetadataModelShow] = useState(false);
@@ -160,8 +159,9 @@ export default function ProjectMetadataFrom() {
           </a>
         </p>
         <p className="text-sm text-zinc-400 mb-10">
-          choose proper and meaningful names for backgrounds and your files.
-          These namse will be used to construct token metadata.
+          choose <span className="text-tock-green">related</span> and{" "}
+          <span className="text-tock-green">meaningful</span> names for layers
+          and your files. These namas will be used to construct token metadata.
         </p>
         <div key={key}>
           {layers.map((layer, i) => (

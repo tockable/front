@@ -15,7 +15,7 @@ export default function NewProjectModal({ isOpen, onClose }) {
 
   // States
   const [name, setName] = useState("");
-  const [chainId, setChainId] = useState("");
+  const [chainId, setChainId] = useState("420");
   const [dropType, setDropType] = useState(DROP_TYPES[0].type);
   const [creating, setCreating] = useState(false);
   const [error, setError] = useState(false);
@@ -118,7 +118,7 @@ export default function NewProjectModal({ isOpen, onClose }) {
               {/* <option value="1">Ethereum</option>
               <option value="10">Optimism</option> */}
               <option value="420">Optimism goerli</option>
-              {/* <option value="137">Polygon</option> */}
+              <option value="137">Polygon</option>
               <option value="80001">Polygon mumbai</option>
               {/* <option value="8453">Base</option> */}
               {/* <option value="7777777">Zora</option> */}

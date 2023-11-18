@@ -22,6 +22,7 @@ export default function DeployRolesModal({
   const { address } = useAccount();
   const [success, setSuccess] = useState(false);
   const [failed, setFailed] = useState(false);
+  const [updating, setUpdating] = useState(false);
 
   // console.log(writeArgs);
   const { config } = usePrepareContractWrite({
@@ -38,7 +39,7 @@ export default function DeployRolesModal({
       setSuccess(false);
       return;
     }
-
+    setUpdating(true);
     updateProjectRoles(address, {
       uuid: project.uuid,
       roles,
@@ -49,8 +50,8 @@ export default function DeployRolesModal({
       } else {
         setFailed(true);
       }
-      setSuccess(true);
     });
+    setUpdating(false);
   }, [uwt.isSuccess]);
 
   return (
@@ -74,9 +75,9 @@ export default function DeployRolesModal({
                     disabled={isLoading || uwt.isLoading}
                     onClick={() => write?.()}
                   >
-                    {(isLoading || uwt.isLoading) && (
+                    {(isLoading || uwt.isLoading || updating) && (
                       <Loading
-                        isLoading={isLoading || uwt.isLoading}
+                        isLoading={isLoading || uwt.isLoading || updating}
                         size={10}
                       />
                     )}

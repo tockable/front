@@ -32,6 +32,7 @@ export default function ProjectDetailsForm() {
   const [imageSizeError, setImageSizeError] = useState(false);
   const [imageTypeError, setImageTypeError] = useState(false);
   const [mustImage, setMustImage] = useState(false);
+  const [slugError, setSlugError] = useState(false);
 
   const [showCover, setShowCover] = useState(false);
   const [coverToShow, setCoverToShow] = useState();
@@ -191,6 +192,7 @@ export default function ProjectDetailsForm() {
   }
 
   async function callUpdateProjectDetail() {
+    setSlugError(false);
     if (
       (!project.image ||
         project.image.length == 0 ||
@@ -222,6 +224,7 @@ export default function ProjectDetailsForm() {
         return;
       }
       if (slugRes.duplicate === true) {
+        setSlugError(true);
         setErrorMessage("Slug is taken.");
         setSaving(false);
         return;
@@ -532,6 +535,11 @@ export default function ProjectDetailsForm() {
       {/* <p>{JSON.stringify(updateNeeded())}</p> */}
       {failed && (
         <div className="mt-2 text-xs text-tock-red">{errorMessage}</div>
+      )}
+      {slugError && (
+        <div className="mt-2 text-xs text-tock-red">
+          Slug is taken before, please choose another one.
+        </div>
       )}
     </form>
   );

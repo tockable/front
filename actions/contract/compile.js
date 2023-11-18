@@ -55,21 +55,20 @@ function compile(_contractName, _project, _buildDirectory) {
   //   console.log(err, "err");
   // } else {
   const output = solc.compile(JSON.stringify(input));
+
   // console.log(output);
   const contract = JSON.parse(output);
 
   const metadata = {
-    abi: contract.contracts[`${_contractName}.sol`][_contractName].abi,
+    // abi: contract.contracts[`${_contractName}.sol`][_contractName].abi,
     bytecode:
       contract.contracts[`${_contractName}.sol`][_contractName].evm.bytecode
         .object,
-    deployedBytecode:
-      contract.contracts[`${_contractName}.sol`][_contractName].evm
-        .deployedBytecode.object,
+    // deployedBytecode:
+    //   contract.contracts[`${_contractName}.sol`][_contractName].evm
+    //     .deployedBytecode.object,
   };
 
-  // console.log(metadata);
-  // console.log(metadata,'s')
   return metadata;
   // }
   // });

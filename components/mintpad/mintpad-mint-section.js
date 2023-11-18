@@ -1,11 +1,7 @@
 import { useEffect, useState } from "react";
 import Mint from "./mint";
-export default function MintpadMintSection({
-  incrementBlobState,
-  roles,
-  prepareMint,
-  session,
-}) {
+
+export default function MintpadMintSection({ roles, prepareMint, session }) {
   const [states, setStates] = useState({});
 
   useEffect(() => {
@@ -35,7 +31,6 @@ export default function MintpadMintSection({
         <div key={"mint-sec-" + i}>
           <Mint
             handleRoleVisibility={handleRoleVisibility}
-            incrementBlobState={incrementBlobState}
             prepareMint={prepareMint}
             role={role}
             show={states[role.id]}

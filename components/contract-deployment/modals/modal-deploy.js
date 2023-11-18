@@ -1,17 +1,19 @@
 import { useState, useRef, useEffect, useContext } from "react";
 import { useAccount } from "wagmi";
 import { getWalletClient, getPublicClient } from "@wagmi/core";
+import { createWalletClient } from "viem";
 import { TOCKABLE_ADDRESS } from "@/tock.config";
 import { createNewSigner } from "@/actions/signature/createWallet";
 import { updateDeployStatus } from "@/actions/launchpad/projects";
 import { LaunchpadContext } from "@/contexts/project-context";
 import { upddateProjectSigner } from "@/actions/launchpad/projects";
+import { http } from "viem";
 import Modal from "@/components/design/modals/modal";
 import Button from "@/components/design/button/button";
 import Loading from "@/components/loading/loading";
 
-export default function DeployContractModal({ onClose, contract }) {
-  const { project, setProject } = useContext(LaunchpadContext);
+export default function DeployContractModal({ onClose, bytecode }) {
+  const { project, setProject, abi } = useContext(LaunchpadContext);
   const { address } = useAccount();
 
   const [takeMoment, setTakeMoment] = useState(true);
@@ -24,7 +26,7 @@ export default function DeployContractModal({ onClose, contract }) {
   const [txreciept, settxreciept] = useState(null);
 
   useEffect(() => {
-    if (!contract) return;
+    if (bytecode.length === 0) return;
     createNewSigner(address, project.uuid)
       .then((res) => {
         if (res.success === true) {
@@ -42,7 +44,7 @@ export default function DeployContractModal({ onClose, contract }) {
           setError("Something happened in our side, please try again.");
         }
       });
-  }, [contract]);
+  }, [bytecode]);
 
   function closeOnSuccess() {
     setProject(project);
@@ -55,9 +57,17 @@ export default function DeployContractModal({ onClose, contract }) {
       const client = await getWalletClient({
         chainId: Number(project.chainId),
       });
+      //alternative 2
+      // const client = createWalletClient({
+      //   chain: polygon,
+      //   transport: custom(window.ethereum),
+      // });
+
+      // const [address] = await client.getAddresses();
 
       const hash = await client.deployContract({
-        ...contract,
+        abi,
+        bytecode,
         account: address,
         args: [TOCKABLE_ADDRESS, signer],
       });
@@ -111,7 +121,6 @@ export default function DeployContractModal({ onClose, contract }) {
         return;
       }
     } catch (err) {
-      console.log(err);
       if (
         err.message.match(/^User rejected the request./g) ||
         err.message.match(

@@ -42,12 +42,12 @@ export const authOptions = {
 
           // if (new Date(result.data.expirationTime as string) < new Date())
           //   throw new Error("Signature Already expired");
-          console.log("Returning");
+          // console.log("Returning");
           return {
             id: siwe.address,
           };
         } catch (error) {
-          console.log(error);
+          // console.log(error);
           return null;
         }
       },

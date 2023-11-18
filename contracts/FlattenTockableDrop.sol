@@ -1,5 +1,3 @@
-
-
 // Sources flattened with hardhat v2.18.2 https://hardhat.org
 
 // SPDX-License-Identifier: MIT
@@ -30,7 +28,6 @@ abstract contract Context {
         return msg.data;
     }
 }
-
 
 // File @openzeppelin/contracts/access/Ownable.sol@v5.0.0
 
@@ -64,7 +61,10 @@ abstract contract Ownable is Context {
      */
     error OwnableInvalidOwner(address owner);
 
-    event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
+    event OwnershipTransferred(
+        address indexed previousOwner,
+        address indexed newOwner
+    );
 
     /**
      * @dev Initializes the contract setting the address provided by the deployer as the initial owner.
@@ -133,7 +133,6 @@ abstract contract Ownable is Context {
     }
 }
 
-
 // File @openzeppelin/contracts/utils/cryptography/ECDSA.sol@v5.0.0
 
 // Original license: SPDX_License_Identifier: MIT
@@ -191,7 +190,10 @@ library ECDSA {
      * - with https://web3js.readthedocs.io/en/v1.3.4/web3-eth-accounts.html#sign[Web3.js]
      * - with https://docs.ethers.io/v5/api/signer/#Signer-signMessage[ethers]
      */
-    function tryRecover(bytes32 hash, bytes memory signature) internal pure returns (address, RecoverError, bytes32) {
+    function tryRecover(
+        bytes32 hash,
+        bytes memory signature
+    ) internal pure returns (address, RecoverError, bytes32) {
         if (signature.length == 65) {
             bytes32 r;
             bytes32 s;
@@ -206,7 +208,11 @@ library ECDSA {
             }
             return tryRecover(hash, v, r, s);
         } else {
-            return (address(0), RecoverError.InvalidSignatureLength, bytes32(signature.length));
+            return (
+                address(0),
+                RecoverError.InvalidSignatureLength,
+                bytes32(signature.length)
+            );
         }
     }
 
@@ -224,8 +230,14 @@ library ECDSA {
      * this is by receiving a hash of the original message (which may otherwise
      * be too long), and then calling {MessageHashUtils-toEthSignedMessageHash} on it.
      */
-    function recover(bytes32 hash, bytes memory signature) internal pure returns (address) {
-        (address recovered, RecoverError error, bytes32 errorArg) = tryRecover(hash, signature);
+    function recover(
+        bytes32 hash,
+        bytes memory signature
+    ) internal pure returns (address) {
+        (address recovered, RecoverError error, bytes32 errorArg) = tryRecover(
+            hash,
+            signature
+        );
         _throwError(error, errorArg);
         return recovered;
     }
@@ -235,9 +247,16 @@ library ECDSA {
      *
      * See https://eips.ethereum.org/EIPS/eip-2098[EIP-2098 short signatures]
      */
-    function tryRecover(bytes32 hash, bytes32 r, bytes32 vs) internal pure returns (address, RecoverError, bytes32) {
+    function tryRecover(
+        bytes32 hash,
+        bytes32 r,
+        bytes32 vs
+    ) internal pure returns (address, RecoverError, bytes32) {
         unchecked {
-            bytes32 s = vs & bytes32(0x7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff);
+            bytes32 s = vs &
+                bytes32(
+                    0x7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff
+                );
             // We do not check for an overflow here since the shift operation results in 0 or 1.
             uint8 v = uint8((uint256(vs) >> 255) + 27);
             return tryRecover(hash, v, r, s);
@@ -247,8 +266,16 @@ library ECDSA {
     /**
      * @dev Overload of {ECDSA-recover} that receives the `r and `vs` short-signature fields separately.
      */
-    function recover(bytes32 hash, bytes32 r, bytes32 vs) internal pure returns (address) {
-        (address recovered, RecoverError error, bytes32 errorArg) = tryRecover(hash, r, vs);
+    function recover(
+        bytes32 hash,
+        bytes32 r,
+        bytes32 vs
+    ) internal pure returns (address) {
+        (address recovered, RecoverError error, bytes32 errorArg) = tryRecover(
+            hash,
+            r,
+            vs
+        );
         _throwError(error, errorArg);
         return recovered;
     }
@@ -272,7 +299,10 @@ library ECDSA {
         // with 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364141 - s1 and flip v from 27 to 28 or
         // vice versa. If your library also generates signatures with 0/1 for v instead 27/28, add 27 to v to accept
         // these malleable signatures as well.
-        if (uint256(s) > 0x7FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF5D576E7357A4501DDFE92F46681B20A0) {
+        if (
+            uint256(s) >
+            0x7FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF5D576E7357A4501DDFE92F46681B20A0
+        ) {
             return (address(0), RecoverError.InvalidSignatureS, s);
         }
 
@@ -289,8 +319,18 @@ library ECDSA {
      * @dev Overload of {ECDSA-recover} that receives the `v`,
      * `r` and `s` signature fields separately.
      */
-    function recover(bytes32 hash, uint8 v, bytes32 r, bytes32 s) internal pure returns (address) {
-        (address recovered, RecoverError error, bytes32 errorArg) = tryRecover(hash, v, r, s);
+    function recover(
+        bytes32 hash,
+        uint8 v,
+        bytes32 r,
+        bytes32 s
+    ) internal pure returns (address) {
+        (address recovered, RecoverError error, bytes32 errorArg) = tryRecover(
+            hash,
+            v,
+            r,
+            s
+        );
         _throwError(error, errorArg);
         return recovered;
     }
@@ -310,7 +350,6 @@ library ECDSA {
         }
     }
 }
-
 
 // File @openzeppelin/contracts/utils/ReentrancyGuard.sol@v5.0.0
 
@@ -399,7 +438,6 @@ abstract contract ReentrancyGuard {
     }
 }
 
-
 // File erc721a/contracts/IERC721A.sol@v4.2.3
 
 // Original license: SPDX_License_Identifier: MIT
@@ -476,7 +514,7 @@ interface IERC721A {
     /**
      * The `extraData` cannot be set on an unintialized ownership slot.
      */
-    error OwnershipNotInitializedForExtraData();
+    error OwnershipNotInitialazeddForExtraData();
 
     // =============================================================
     //                            STRUCTS
@@ -525,18 +563,30 @@ interface IERC721A {
     /**
      * @dev Emitted when `tokenId` token is transferred from `from` to `to`.
      */
-    event Transfer(address indexed from, address indexed to, uint256 indexed tokenId);
+    event Transfer(
+        address indexed from,
+        address indexed to,
+        uint256 indexed tokenId
+    );
 
     /**
      * @dev Emitted when `owner` enables `approved` to manage the `tokenId` token.
      */
-    event Approval(address indexed owner, address indexed approved, uint256 indexed tokenId);
+    event Approval(
+        address indexed owner,
+        address indexed approved,
+        uint256 indexed tokenId
+    );
 
     /**
      * @dev Emitted when `owner` enables or disables
      * (`approved`) `operator` to manage all of its assets.
      */
-    event ApprovalForAll(address indexed owner, address indexed operator, bool approved);
+    event ApprovalForAll(
+        address indexed owner,
+        address indexed operator,
+        bool approved
+    );
 
     /**
      * @dev Returns the number of tokens in `owner`'s account.
@@ -643,14 +693,19 @@ interface IERC721A {
      *
      * - `tokenId` must exist.
      */
-    function getApproved(uint256 tokenId) external view returns (address operator);
+    function getApproved(
+        uint256 tokenId
+    ) external view returns (address operator);
 
     /**
      * @dev Returns if the `operator` is allowed to manage all of the assets of `owner`.
      *
      * See {setApprovalForAll}.
      */
-    function isApprovedForAll(address owner, address operator) external view returns (bool);
+    function isApprovedForAll(
+        address owner,
+        address operator
+    ) external view returns (bool);
 
     // =============================================================
     //                        IERC721Metadata
@@ -682,9 +737,13 @@ interface IERC721A {
      *
      * See {_mintERC2309} for more details.
      */
-    event ConsecutiveTransfer(uint256 indexed fromTokenId, uint256 toTokenId, address indexed from, address indexed to);
+    event ConsecutiveTransfer(
+        uint256 indexed fromTokenId,
+        uint256 toTokenId,
+        address indexed from,
+        address indexed to
+    );
 }
-
 
 // File erc721a/contracts/ERC721A.sol@v4.2.3
 
@@ -888,7 +947,9 @@ contract ERC721A is IERC721A {
     /**
      * @dev Returns the number of tokens in `owner`'s account.
      */
-    function balanceOf(address owner) public view virtual override returns (uint256) {
+    function balanceOf(
+        address owner
+    ) public view virtual override returns (uint256) {
         if (owner == address(0)) revert BalanceQueryForZeroAddress();
         return _packedAddressData[owner] & _BITMASK_ADDRESS_DATA_ENTRY;
     }
@@ -897,14 +958,18 @@ contract ERC721A is IERC721A {
      * Returns the number of tokens minted by `owner`.
      */
     function _numberMinted(address owner) internal view returns (uint256) {
-        return (_packedAddressData[owner] >> _BITPOS_NUMBER_MINTED) & _BITMASK_ADDRESS_DATA_ENTRY;
+        return
+            (_packedAddressData[owner] >> _BITPOS_NUMBER_MINTED) &
+            _BITMASK_ADDRESS_DATA_ENTRY;
     }
 
     /**
      * Returns the number of tokens burned by or on behalf of `owner`.
      */
     function _numberBurned(address owner) internal view returns (uint256) {
-        return (_packedAddressData[owner] >> _BITPOS_NUMBER_BURNED) & _BITMASK_ADDRESS_DATA_ENTRY;
+        return
+            (_packedAddressData[owner] >> _BITPOS_NUMBER_BURNED) &
+            _BITMASK_ADDRESS_DATA_ENTRY;
     }
 
     /**
@@ -925,7 +990,9 @@ contract ERC721A is IERC721A {
         assembly {
             auxCasted := aux
         }
-        packed = (packed & _BITMASK_AUX_COMPLEMENT) | (auxCasted << _BITPOS_AUX);
+        packed =
+            (packed & _BITMASK_AUX_COMPLEMENT) |
+            (auxCasted << _BITPOS_AUX);
         _packedAddressData[owner] = packed;
     }
 
@@ -941,7 +1008,9 @@ contract ERC721A is IERC721A {
      *
      * This function call must use less than 30000 gas.
      */
-    function supportsInterface(bytes4 interfaceId) public view virtual override returns (bool) {
+    function supportsInterface(
+        bytes4 interfaceId
+    ) public view virtual override returns (bool) {
         // The interface IDs are constants representing the first 4 bytes
         // of the XOR of all function selectors in the interface.
         // See: [ERC165](https://eips.ethereum.org/EIPS/eip-165)
@@ -973,11 +1042,16 @@ contract ERC721A is IERC721A {
     /**
      * @dev Returns the Uniform Resource Identifier (URI) for `tokenId` token.
      */
-    function tokenURI(uint256 tokenId) public view virtual override returns (string memory) {
+    function tokenURI(
+        uint256 tokenId
+    ) public view virtual override returns (string memory) {
         if (!_exists(tokenId)) revert URIQueryForNonexistentToken();
 
         string memory baseURI = _baseURI();
-        return bytes(baseURI).length != 0 ? string(abi.encodePacked(baseURI, _toString(tokenId))) : '';
+        return
+            bytes(baseURI).length != 0
+                ? string(abi.encodePacked(baseURI, _toString(tokenId)))
+                : "";
     }
 
     /**
@@ -986,7 +1060,7 @@ contract ERC721A is IERC721A {
      * by default, it can be overridden in child contracts.
      */
     function _baseURI() internal view virtual returns (string memory) {
-        return '';
+        return "";
     }
 
     // =============================================================
@@ -1000,7 +1074,9 @@ contract ERC721A is IERC721A {
      *
      * - `tokenId` must exist.
      */
-    function ownerOf(uint256 tokenId) public view virtual override returns (address) {
+    function ownerOf(
+        uint256 tokenId
+    ) public view virtual override returns (address) {
         return address(uint160(_packedOwnershipOf(tokenId)));
     }
 
@@ -1008,14 +1084,18 @@ contract ERC721A is IERC721A {
      * @dev Gas spent here starts off proportional to the maximum mint batch size.
      * It gradually moves to O(1) as tokens get transferred around over time.
      */
-    function _ownershipOf(uint256 tokenId) internal view virtual returns (TokenOwnership memory) {
+    function _ownershipOf(
+        uint256 tokenId
+    ) internal view virtual returns (TokenOwnership memory) {
         return _unpackedOwnership(_packedOwnershipOf(tokenId));
     }
 
     /**
      * @dev Returns the unpacked `TokenOwnership` struct at `index`.
      */
-    function _ownershipAt(uint256 index) internal view virtual returns (TokenOwnership memory) {
+    function _ownershipAt(
+        uint256 index
+    ) internal view virtual returns (TokenOwnership memory) {
         return _unpackedOwnership(_packedOwnerships[index]);
     }
 
@@ -1031,7 +1111,9 @@ contract ERC721A is IERC721A {
     /**
      * Returns the packed ownership data of `tokenId`.
      */
-    function _packedOwnershipOf(uint256 tokenId) private view returns (uint256) {
+    function _packedOwnershipOf(
+        uint256 tokenId
+    ) private view returns (uint256) {
         uint256 curr = tokenId;
 
         unchecked {
@@ -1062,7 +1144,9 @@ contract ERC721A is IERC721A {
     /**
      * @dev Returns the unpacked `TokenOwnership` struct from `packed`.
      */
-    function _unpackedOwnership(uint256 packed) private pure returns (TokenOwnership memory ownership) {
+    function _unpackedOwnership(
+        uint256 packed
+    ) private pure returns (TokenOwnership memory ownership) {
         ownership.addr = address(uint160(packed));
         ownership.startTimestamp = uint64(packed >> _BITPOS_START_TIMESTAMP);
         ownership.burned = packed & _BITMASK_BURNED != 0;
@@ -1072,19 +1156,27 @@ contract ERC721A is IERC721A {
     /**
      * @dev Packs ownership data into a single uint256.
      */
-    function _packOwnershipData(address owner, uint256 flags) private view returns (uint256 result) {
+    function _packOwnershipData(
+        address owner,
+        uint256 flags
+    ) private view returns (uint256 result) {
         assembly {
             // Mask `owner` to the lower 160 bits, in case the upper bits somehow aren't clean.
             owner := and(owner, _BITMASK_ADDRESS)
             // `owner | (block.timestamp << _BITPOS_START_TIMESTAMP) | flags`.
-            result := or(owner, or(shl(_BITPOS_START_TIMESTAMP, timestamp()), flags))
+            result := or(
+                owner,
+                or(shl(_BITPOS_START_TIMESTAMP, timestamp()), flags)
+            )
         }
     }
 
     /**
      * @dev Returns the `nextInitialized` flag set if `quantity` equals 1.
      */
-    function _nextInitializedFlag(uint256 quantity) private pure returns (uint256 result) {
+    function _nextInitializedFlag(
+        uint256 quantity
+    ) private pure returns (uint256 result) {
         // For branchless setting of the `nextInitialized` flag.
         assembly {
             // `(quantity == 1) << _BITPOS_NEXT_INITIALIZED`.
@@ -1110,7 +1202,10 @@ contract ERC721A is IERC721A {
      *
      * Emits an {Approval} event.
      */
-    function approve(address to, uint256 tokenId) public payable virtual override {
+    function approve(
+        address to,
+        uint256 tokenId
+    ) public payable virtual override {
         address owner = ownerOf(tokenId);
 
         if (_msgSenderERC721A() != owner)
@@ -1129,7 +1224,9 @@ contract ERC721A is IERC721A {
      *
      * - `tokenId` must exist.
      */
-    function getApproved(uint256 tokenId) public view virtual override returns (address) {
+    function getApproved(
+        uint256 tokenId
+    ) public view virtual override returns (address) {
         if (!_exists(tokenId)) revert ApprovalQueryForNonexistentToken();
 
         return _tokenApprovals[tokenId].value;
@@ -1146,7 +1243,10 @@ contract ERC721A is IERC721A {
      *
      * Emits an {ApprovalForAll} event.
      */
-    function setApprovalForAll(address operator, bool approved) public virtual override {
+    function setApprovalForAll(
+        address operator,
+        bool approved
+    ) public virtual override {
         _operatorApprovals[_msgSenderERC721A()][operator] = approved;
         emit ApprovalForAll(_msgSenderERC721A(), operator, approved);
     }
@@ -1156,7 +1256,10 @@ contract ERC721A is IERC721A {
      *
      * See {setApprovalForAll}.
      */
-    function isApprovedForAll(address owner, address operator) public view virtual override returns (bool) {
+    function isApprovedForAll(
+        address owner,
+        address operator
+    ) public view virtual override returns (bool) {
         return _operatorApprovals[owner][operator];
     }
 
@@ -1195,7 +1298,9 @@ contract ERC721A is IERC721A {
     /**
      * @dev Returns the storage slot and value for the approved address of `tokenId`.
      */
-    function _getApprovedSlotAndAddress(uint256 tokenId)
+    function _getApprovedSlotAndAddress(
+        uint256 tokenId
+    )
         private
         view
         returns (uint256 approvedAddressSlot, address approvedAddress)
@@ -1232,13 +1337,24 @@ contract ERC721A is IERC721A {
     ) public payable virtual override {
         uint256 prevOwnershipPacked = _packedOwnershipOf(tokenId);
 
-        if (address(uint160(prevOwnershipPacked)) != from) revert TransferFromIncorrectOwner();
+        if (address(uint160(prevOwnershipPacked)) != from)
+            revert TransferFromIncorrectOwner();
 
-        (uint256 approvedAddressSlot, address approvedAddress) = _getApprovedSlotAndAddress(tokenId);
+        (
+            uint256 approvedAddressSlot,
+            address approvedAddress
+        ) = _getApprovedSlotAndAddress(tokenId);
 
         // The nested ifs save around 20+ gas over a compound boolean condition.
-        if (!_isSenderApprovedOrOwner(approvedAddress, from, _msgSenderERC721A()))
-            if (!isApprovedForAll(from, _msgSenderERC721A())) revert TransferCallerNotOwnerNorApproved();
+        if (
+            !_isSenderApprovedOrOwner(
+                approvedAddress,
+                from,
+                _msgSenderERC721A()
+            )
+        )
+            if (!isApprovedForAll(from, _msgSenderERC721A()))
+                revert TransferCallerNotOwnerNorApproved();
 
         if (to == address(0)) revert TransferToZeroAddress();
 
@@ -1267,7 +1383,8 @@ contract ERC721A is IERC721A {
             // - `nextInitialized` to `true`.
             _packedOwnerships[tokenId] = _packOwnershipData(
                 to,
-                _BITMASK_NEXT_INITIALIZED | _nextExtraData(from, to, prevOwnershipPacked)
+                _BITMASK_NEXT_INITIALIZED |
+                    _nextExtraData(from, to, prevOwnershipPacked)
             );
 
             // If the next slot may not have been initialized (i.e. `nextInitialized == false`) .
@@ -1296,7 +1413,7 @@ contract ERC721A is IERC721A {
         address to,
         uint256 tokenId
     ) public payable virtual override {
-        safeTransferFrom(from, to, tokenId, '');
+        safeTransferFrom(from, to, tokenId, "");
     }
 
     /**
@@ -1389,10 +1506,17 @@ contract ERC721A is IERC721A {
         uint256 tokenId,
         bytes memory _data
     ) private returns (bool) {
-        try ERC721A__IERC721Receiver(to).onERC721Received(_msgSenderERC721A(), from, tokenId, _data) returns (
-            bytes4 retval
-        ) {
-            return retval == ERC721A__IERC721Receiver(to).onERC721Received.selector;
+        try
+            ERC721A__IERC721Receiver(to).onERC721Received(
+                _msgSenderERC721A(),
+                from,
+                tokenId,
+                _data
+            )
+        returns (bytes4 retval) {
+            return
+                retval ==
+                ERC721A__IERC721Receiver(to).onERC721Received.selector;
         } catch (bytes memory reason) {
             if (reason.length == 0) {
                 revert TransferToNonERC721ReceiverImplementer();
@@ -1433,7 +1557,9 @@ contract ERC721A is IERC721A {
             // - `numberMinted += quantity`.
             //
             // We can directly add to the `balance` and `numberMinted`.
-            _packedAddressData[to] += quantity * ((1 << _BITPOS_NUMBER_MINTED) | 1);
+            _packedAddressData[to] +=
+                quantity *
+                ((1 << _BITPOS_NUMBER_MINTED) | 1);
 
             // Updates:
             // - `address` to the owner.
@@ -1442,7 +1568,8 @@ contract ERC721A is IERC721A {
             // - `nextInitialized` to `quantity == 1`.
             _packedOwnerships[startTokenId] = _packOwnershipData(
                 to,
-                _nextInitializedFlag(quantity) | _nextExtraData(address(0), to, 0)
+                _nextInitializedFlag(quantity) |
+                    _nextExtraData(address(0), to, 0)
             );
 
             uint256 toMasked;
@@ -1509,7 +1636,8 @@ contract ERC721A is IERC721A {
         uint256 startTokenId = _currentIndex;
         if (to == address(0)) revert MintToZeroAddress();
         if (quantity == 0) revert MintZeroQuantity();
-        if (quantity > _MAX_MINT_ERC2309_QUANTITY_LIMIT) revert MintERC2309QuantityExceedsLimit();
+        if (quantity > _MAX_MINT_ERC2309_QUANTITY_LIMIT)
+            revert MintERC2309QuantityExceedsLimit();
 
         _beforeTokenTransfers(address(0), to, startTokenId, quantity);
 
@@ -1520,7 +1648,9 @@ contract ERC721A is IERC721A {
             // - `numberMinted += quantity`.
             //
             // We can directly add to the `balance` and `numberMinted`.
-            _packedAddressData[to] += quantity * ((1 << _BITPOS_NUMBER_MINTED) | 1);
+            _packedAddressData[to] +=
+                quantity *
+                ((1 << _BITPOS_NUMBER_MINTED) | 1);
 
             // Updates:
             // - `address` to the owner.
@@ -1529,10 +1659,16 @@ contract ERC721A is IERC721A {
             // - `nextInitialized` to `quantity == 1`.
             _packedOwnerships[startTokenId] = _packOwnershipData(
                 to,
-                _nextInitializedFlag(quantity) | _nextExtraData(address(0), to, 0)
+                _nextInitializedFlag(quantity) |
+                    _nextExtraData(address(0), to, 0)
             );
 
-            emit ConsecutiveTransfer(startTokenId, startTokenId + quantity - 1, address(0), to);
+            emit ConsecutiveTransfer(
+                startTokenId,
+                startTokenId + quantity - 1,
+                address(0),
+                to
+            );
 
             _currentIndex = startTokenId + quantity;
         }
@@ -1564,7 +1700,14 @@ contract ERC721A is IERC721A {
                 uint256 end = _currentIndex;
                 uint256 index = end - quantity;
                 do {
-                    if (!_checkContractOnERC721Received(address(0), to, index++, _data)) {
+                    if (
+                        !_checkContractOnERC721Received(
+                            address(0),
+                            to,
+                            index++,
+                            _data
+                        )
+                    ) {
                         revert TransferToNonERC721ReceiverImplementer();
                     }
                 } while (index < end);
@@ -1578,7 +1721,7 @@ contract ERC721A is IERC721A {
      * @dev Equivalent to `_safeMint(to, quantity, '')`.
      */
     function _safeMint(address to, uint256 quantity) internal virtual {
-        _safeMint(to, quantity, '');
+        _safeMint(to, quantity, "");
     }
 
     // =============================================================
@@ -1607,12 +1750,22 @@ contract ERC721A is IERC721A {
 
         address from = address(uint160(prevOwnershipPacked));
 
-        (uint256 approvedAddressSlot, address approvedAddress) = _getApprovedSlotAndAddress(tokenId);
+        (
+            uint256 approvedAddressSlot,
+            address approvedAddress
+        ) = _getApprovedSlotAndAddress(tokenId);
 
         if (approvalCheck) {
             // The nested ifs save around 20+ gas over a compound boolean condition.
-            if (!_isSenderApprovedOrOwner(approvedAddress, from, _msgSenderERC721A()))
-                if (!isApprovedForAll(from, _msgSenderERC721A())) revert TransferCallerNotOwnerNorApproved();
+            if (
+                !_isSenderApprovedOrOwner(
+                    approvedAddress,
+                    from,
+                    _msgSenderERC721A()
+                )
+            )
+                if (!isApprovedForAll(from, _msgSenderERC721A()))
+                    revert TransferCallerNotOwnerNorApproved();
         }
 
         _beforeTokenTransfers(from, address(0), tokenId, 1);
@@ -1644,7 +1797,8 @@ contract ERC721A is IERC721A {
             // - `nextInitialized` to `true`.
             _packedOwnerships[tokenId] = _packOwnershipData(
                 from,
-                (_BITMASK_BURNED | _BITMASK_NEXT_INITIALIZED) | _nextExtraData(from, address(0), prevOwnershipPacked)
+                (_BITMASK_BURNED | _BITMASK_NEXT_INITIALIZED) |
+                    _nextExtraData(from, address(0), prevOwnershipPacked)
             );
 
             // If the next slot may not have been initialized (i.e. `nextInitialized == false`) .
@@ -1679,13 +1833,15 @@ contract ERC721A is IERC721A {
      */
     function _setExtraDataAt(uint256 index, uint24 extraData) internal virtual {
         uint256 packed = _packedOwnerships[index];
-        if (packed == 0) revert OwnershipNotInitializedForExtraData();
+        if (packed == 0) revert OwnershipNotInitialazeddForExtraData();
         uint256 extraDataCasted;
         // Cast `extraData` with assembly to avoid redundant masking.
         assembly {
             extraDataCasted := extraData
         }
-        packed = (packed & _BITMASK_EXTRA_DATA_COMPLEMENT) | (extraDataCasted << _BITPOS_EXTRA_DATA);
+        packed =
+            (packed & _BITMASK_EXTRA_DATA_COMPLEMENT) |
+            (extraDataCasted << _BITPOS_EXTRA_DATA);
         _packedOwnerships[index] = packed;
     }
 
@@ -1738,7 +1894,9 @@ contract ERC721A is IERC721A {
     /**
      * @dev Converts a uint256 to its ASCII string decimal representation.
      */
-    function _toString(uint256 value) internal pure virtual returns (string memory str) {
+    function _toString(
+        uint256 value
+    ) internal pure virtual returns (string memory str) {
         assembly {
             // The maximum value of a uint256 contains 78 digits (1 byte per digit), but
             // we allocate 0xa0 bytes to keep the free memory pointer 32-byte word aligned.
@@ -1777,7 +1935,6 @@ contract ERC721A is IERC721A {
         }
     }
 }
-
 
 // File erc721a/contracts/extensions/IERC721AQueryable.sol@v4.2.3
 
@@ -1820,13 +1977,17 @@ interface IERC721AQueryable is IERC721A {
      * - `burned = false`
      * - `extraData = <Extra data at start of ownership>`
      */
-    function explicitOwnershipOf(uint256 tokenId) external view returns (TokenOwnership memory);
+    function explicitOwnershipOf(
+        uint256 tokenId
+    ) external view returns (TokenOwnership memory);
 
     /**
      * @dev Returns an array of `TokenOwnership` structs at `tokenIds` in order.
      * See {ERC721AQueryable-explicitOwnershipOf}
      */
-    function explicitOwnershipsOf(uint256[] memory tokenIds) external view returns (TokenOwnership[] memory);
+    function explicitOwnershipsOf(
+        uint256[] memory tokenIds
+    ) external view returns (TokenOwnership[] memory);
 
     /**
      * @dev Returns an array of token IDs owned by `owner`,
@@ -1856,9 +2017,10 @@ interface IERC721AQueryable is IERC721A {
      * multiple smaller scans if the collection is large enough to cause
      * an out-of-gas error (10K collections should be fine).
      */
-    function tokensOfOwner(address owner) external view returns (uint256[] memory);
+    function tokensOfOwner(
+        address owner
+    ) external view returns (uint256[] memory);
 }
-
 
 // File erc721a/contracts/extensions/ERC721AQueryable.sol@v4.2.3
 
@@ -1867,7 +2029,6 @@ interface IERC721AQueryable is IERC721A {
 // Creator: Chiru Labs
 
 pragma solidity ^0.8.4;
-
 
 /**
  * @title ERC721AQueryable.
@@ -1899,7 +2060,9 @@ abstract contract ERC721AQueryable is ERC721A, IERC721AQueryable {
      * - `burned = false`
      * - `extraData = <Extra data at start of ownership>`
      */
-    function explicitOwnershipOf(uint256 tokenId) public view virtual override returns (TokenOwnership memory) {
+    function explicitOwnershipOf(
+        uint256 tokenId
+    ) public view virtual override returns (TokenOwnership memory) {
         TokenOwnership memory ownership;
         if (tokenId < _startTokenId() || tokenId >= _nextTokenId()) {
             return ownership;
@@ -1915,16 +2078,14 @@ abstract contract ERC721AQueryable is ERC721A, IERC721AQueryable {
      * @dev Returns an array of `TokenOwnership` structs at `tokenIds` in order.
      * See {ERC721AQueryable-explicitOwnershipOf}
      */
-    function explicitOwnershipsOf(uint256[] calldata tokenIds)
-        external
-        view
-        virtual
-        override
-        returns (TokenOwnership[] memory)
-    {
+    function explicitOwnershipsOf(
+        uint256[] calldata tokenIds
+    ) external view virtual override returns (TokenOwnership[] memory) {
         unchecked {
             uint256 tokenIdsLength = tokenIds.length;
-            TokenOwnership[] memory ownerships = new TokenOwnership[](tokenIdsLength);
+            TokenOwnership[] memory ownerships = new TokenOwnership[](
+                tokenIdsLength
+            );
             for (uint256 i; i != tokenIdsLength; ++i) {
                 ownerships[i] = explicitOwnershipOf(tokenIds[i]);
             }
@@ -1985,7 +2146,11 @@ abstract contract ERC721AQueryable is ERC721A, IERC721AQueryable {
             if (!ownership.burned) {
                 currOwnershipAddr = ownership.addr;
             }
-            for (uint256 i = start; i != stop && tokenIdsIdx != tokenIdsMaxLength; ++i) {
+            for (
+                uint256 i = start;
+                i != stop && tokenIdsIdx != tokenIdsMaxLength;
+                ++i
+            ) {
                 ownership = _ownershipAt(i);
                 if (ownership.burned) {
                     continue;
@@ -2015,14 +2180,20 @@ abstract contract ERC721AQueryable is ERC721A, IERC721AQueryable {
      * multiple smaller scans if the collection is large enough to cause
      * an out-of-gas error (10K collections should be fine).
      */
-    function tokensOfOwner(address owner) external view virtual override returns (uint256[] memory) {
+    function tokensOfOwner(
+        address owner
+    ) external view virtual override returns (uint256[] memory) {
         unchecked {
             uint256 tokenIdsIdx;
             address currOwnershipAddr;
             uint256 tokenIdsLength = balanceOf(owner);
             uint256[] memory tokenIds = new uint256[](tokenIdsLength);
             TokenOwnership memory ownership;
-            for (uint256 i = _startTokenId(); tokenIdsIdx != tokenIdsLength; ++i) {
+            for (
+                uint256 i = _startTokenId();
+                tokenIdsIdx != tokenIdsLength;
+                ++i
+            ) {
                 ownership = _ownershipAt(i);
                 if (ownership.burned) {
                     continue;
@@ -2039,7 +2210,6 @@ abstract contract ERC721AQueryable is ERC721A, IERC721AQueryable {
     }
 }
 
-
 // File contracts/TockableDrop.sol
 
 // Original license: SPDX_License_Identifier: MIT
@@ -2047,16 +2217,13 @@ abstract contract ERC721AQueryable is ERC721A, IERC721AQueryable {
 
 pragma solidity ^0.8.0;
 
-
-
-
 contract TockableDrop is ERC721AQueryable, Ownable, ReentrancyGuard {
-    // Tockable version
+    /// contract version
     uint256 public constant TOCKABLE_CONTRACT_VERSION = 1;
 
     /// Errors
     error InvalidArgs();
-    error NotInitialize();
+    error NotInitialazed();
     error MintIsNotLive();
     error MoreThanAllowed();
     error MoreThanAvailable();
@@ -2064,22 +2231,13 @@ contract TockableDrop is ERC721AQueryable, Ownable, ReentrancyGuard {
     error NotEnoughEth();
     error UnAuthorized();
     error WithdrawFailed();
-    error TritsIsFrozen();
-    error TokenHasBeenTakenBefore();
-    error InvalidQuantity();
-
-    /// Events
-    event tokenReceived(address, uint256);
+    error TraitsIsFrozen();
+    error TokenHasBeenTakenBefore(uint256[] indexes);
 
     /// Structs
     struct IpfsHash {
         bytes32 part1;
         bytes32 part2;
-    }
-
-    struct Trait {
-        bytes32 trait_type;
-        bytes32 value;
     }
 
     struct Role {
@@ -2110,47 +2268,53 @@ contract TockableDrop is ERC721AQueryable, Ownable, ReentrancyGuard {
     address private signerAddress;
     bool public isMintLive = false;
     bool public isTraitsFrozen = false;
-    uint256 activeSession;
-    uint256 rolesLength;
-    uint256 sessionsLength;
+    uint256 public activeSession;
+    uint256 private existingRolesLength;
+    uint256 private exisitngSessionsLength;
 
     /// Mappings
-    mapping(uint256 => uint256) mintedInSessionById;
-    mapping(bytes => uint256) mintedBySignature;
-    mapping(uint256 => Role) getRoleById;
-    mapping(uint256 => Session) getSessionById;
-    mapping(uint256 => IpfsHash) ipfsHashOf;
-    mapping(uint256 => mapping(bytes32 => bytes32)) traitValueOfTraitTypeOf;
-    mapping(bytes32 => bool) hasBeenTaken;
+    mapping(uint256 => uint256) private mintedInSessionById;
+    mapping(address => mapping(uint256 => mapping(uint256 => uint256)))
+        private mintedByAddressInRoleInSessionId;
+    mapping(uint256 => Role) private getRoleById;
+    mapping(uint256 => Session) private getSessionById;
+
+    mapping(uint256 => IpfsHash) private ipfsHashOf;
+    mapping(uint256 => mapping(bytes32 => bytes32))
+        private traitValueOfTraitTypeOf;
+    mapping(bytes32 => bool) private hasBeenTaken;
 
     /// setters
     function setRoles(Role[] calldata _roles) external onlyOwner {
         if (_roles.length == 0) revert InvalidArgs();
-        if (rolesLength > 0) {
-            if (rolesLength > _roles.length) {}
-            revert InvalidArgs();
+        if (existingRolesLength > 0) {
+            if (_roles.length < existingRolesLength) revert InvalidArgs();
         }
+
         unchecked {
             for (uint256 i = 0; i < _roles.length; i++) {
                 getRoleById[i] = _roles[i];
             }
         }
-        if (rolesLength < _roles.length) rolesLength = _roles.length;
+
+        if (existingRolesLength < _roles.length)
+            existingRolesLength = _roles.length;
     }
 
     function setSessions(Session[] calldata _sessions) external onlyOwner {
         if (_sessions.length == 0) revert InvalidArgs();
-        if (sessionsLength > 0) {
-            if (sessionsLength > _sessions.length) {}
-            revert InvalidArgs();
+        if (exisitngSessionsLength > 0) {
+            if (_sessions.length < exisitngSessionsLength) revert InvalidArgs();
         }
+
         unchecked {
             for (uint256 i = 0; i < _sessions.length; i++) {
                 getSessionById[i] = _sessions[i];
             }
         }
-        if (sessionsLength < _sessions.length)
-            sessionsLength = _sessions.length;
+
+        if (exisitngSessionsLength < _sessions.length)
+            exisitngSessionsLength = _sessions.length;
     }
 
     function setMintIsLive(bool _status) public onlyOwner {
@@ -2163,10 +2327,12 @@ contract TockableDrop is ERC721AQueryable, Ownable, ReentrancyGuard {
     }
 
     function addTraitTypes(bytes32[] calldata _traitTypes) external onlyOwner {
-        if (isTraitsFrozen) revert TritsIsFrozen();
+        if (isTraitsFrozen) revert TraitsIsFrozen();
+
         for (uint256 i = 0; i < _traitTypes.length; i++) {
             traitTypes.push(_traitTypes[i]);
         }
+
         isTraitsFrozen = true;
     }
 
@@ -2180,30 +2346,18 @@ contract TockableDrop is ERC721AQueryable, Ownable, ReentrancyGuard {
         IpfsHash[] calldata _cids,
         bytes calldata _signature,
         uint256 _roleId,
-        Trait[][] calldata _traits
+        bytes32[][] calldata _traits
     ) external payable nonReentrant {
-        if (traitTypes.length == 0) revert NotInitialize();
-        if (_quantity > 1) revert InvalidQuantity(); // cuurently not supporting batch mint
+        if (traitTypes.length == 0) revert NotInitialazed();
         if (!isMintLive) revert MintIsNotLive();
-        if (_cids.length != _quantity) revert InvalidArgs();
-        if (_cids.length != _traits.length) revert InvalidArgs();
 
-        isTokenLeftInTotal(_quantity);
-        isTokenLeftInActiveSession(_quantity);
+        inMintArgsValid(_quantity, _cids, _traits);
         isElligible(_roleId);
         isSignatureValid(msg.sender, _roleId, _signature);
-        isSignatureHasQuota(_signature, _roleId, _quantity);
-
-        if (duplicateVerification) {
-            unchecked {
-                for (uint256 i = 0; i < _traits.length; i++) {
-                    bytes32 tokenHash = createHashFromTraits(_traits[i]);
-                    if (hasBeenTaken[tokenHash])
-                        revert TokenHasBeenTakenBefore();
-                    hasBeenTaken[tokenHash] = true;
-                }
-            }
-        }
+        isTokenLeftInTotal(_quantity);
+        isTokenLeftInActiveSession(_quantity);
+        isTokenLeftForAddressInRoleInSession(msg.sender, _roleId, _quantity);
+        isDuplicate(_traits);
 
         uint256 payAmount = (getRoleById[_roleId].price + BASE_FEE) * _quantity;
         if (msg.value < payAmount) revert NotEnoughEth();
@@ -2212,25 +2366,16 @@ contract TockableDrop is ERC721AQueryable, Ownable, ReentrancyGuard {
 
         _safeMint(msg.sender, _quantity);
 
-        unchecked {
-            for (uint256 i = 0; i < _quantity; i++) {
-                setIpfsHash(nextTokenIdBeforeMint + i, _cids[i]);
-                for (uint256 j = 0; j < _traits[i].length; j++) {
-                    if (_traits[i].length != traitTypes.length)
-                        revert InvalidArgs();
-                    traitValueOfTraitTypeOf[nextTokenIdBeforeMint + i][
-                        _traits[i][j].trait_type
-                    ] = _traits[i][j].value;
-                }
-            }
-        }
+        setTokenTraits(_quantity, nextTokenIdBeforeMint, _cids, _traits);
 
         mintedInSessionById[activeSession] =
             mintedInSessionById[activeSession] +
             _quantity;
 
-        mintedBySignature[_signature] =
-            mintedBySignature[_signature] +
+        mintedByAddressInRoleInSessionId[msg.sender][_roleId][activeSession] =
+            mintedByAddressInRoleInSessionId[msg.sender][_roleId][
+                activeSession
+            ] +
             _quantity;
 
         uint256 tockableFee = _quantity * BASE_FEE;
@@ -2240,41 +2385,17 @@ contract TockableDrop is ERC721AQueryable, Ownable, ReentrancyGuard {
     function ownerMint(
         uint256 _quantity,
         IpfsHash[] calldata _cids,
-        Trait[][] calldata _traits
+        bytes32[][] calldata _traits
     ) external nonReentrant onlyOwner {
-        if (traitTypes.length == 0) revert NotInitialize();
-        if (_quantity > 1) revert InvalidQuantity(); // cuurently not supporting batch mint
-        if (_cids.length != _quantity) revert InvalidArgs();
-        if (_cids.length != _traits.length) revert InvalidArgs();
+        if (traitTypes.length == 0) revert NotInitialazed();
 
+        inMintArgsValid(_quantity, _cids, _traits);
         isTokenLeftInTotal(_quantity);
-
-        if (duplicateVerification) {
-            unchecked {
-                for (uint256 i = 0; i < _traits.length; i++) {
-                    bytes32 tokenHash = createHashFromTraits(_traits[i]);
-                    if (hasBeenTaken[tokenHash] == true)
-                        revert TokenHasBeenTakenBefore();
-                    hasBeenTaken[tokenHash] = true;
-                }
-            }
-        }
+        isDuplicate(_traits);
 
         uint256 nextTokenIdBeforeMint = _nextTokenId();
         _safeMint(msg.sender, _quantity);
-
-        unchecked {
-            for (uint256 i = 0; i < _quantity; i++) {
-                setIpfsHash(nextTokenIdBeforeMint + i, _cids[i]);
-                for (uint256 j = 0; j < _traits[i].length; j++) {
-                    if (_traits[i].length != traitTypes.length)
-                        revert InvalidArgs();
-                    traitValueOfTraitTypeOf[nextTokenIdBeforeMint + i][
-                        _traits[i][j].trait_type
-                    ] = _traits[i][j].value;
-                }
-            }
-        }
+        setTokenTraits(_quantity, nextTokenIdBeforeMint, _cids, _traits);
     }
 
     /// Validators
@@ -2291,17 +2412,15 @@ contract TockableDrop is ERC721AQueryable, Ownable, ReentrancyGuard {
         }
     }
 
-    function isSignatureHasQuota(
-        bytes memory _signature,
+    function isTokenLeftForAddressInRoleInSession(
+        address _address,
         uint256 _roleId,
         uint256 _quantity
     ) private view {
         if (
-            mintedBySignature[_signature] + _quantity >
-            getRoleById[_roleId].maxAllowedMint
-        ) {
-            revert MoreThanAllowed();
-        }
+            tokensLeftForAddressInRoleInActiveSession(_address, _roleId) <
+            _quantity
+        ) revert MoreThanAllowed();
     }
 
     function isSignatureValid(
@@ -2314,11 +2433,41 @@ contract TockableDrop is ERC721AQueryable, Ownable, ReentrancyGuard {
     }
 
     function isElligible(uint256 _roleId) private view {
-        uint256[] storage allowedRolesIdsInCurrentSession = getSessionById[
+        uint256[] memory allowedRolesIdsInCurrentSession = getSessionById[
             activeSession
         ].allowedRoles;
-        if (!isInArray(allowedRolesIdsInCurrentSession, _roleId)) {
+        if (!isInArray(allowedRolesIdsInCurrentSession, _roleId))
             revert NotElligible();
+    }
+
+    function inMintArgsValid(
+        uint256 _quantity,
+        IpfsHash[] calldata _cids,
+        bytes32[][] calldata _traits
+    ) private pure {
+        if (_traits.length == 0) revert InvalidArgs();
+        if (_cids.length != _quantity) revert InvalidArgs();
+        if (_cids.length != _traits.length) revert InvalidArgs();
+    }
+
+    function isDuplicate(bytes32[][] calldata _traits) private {
+        if (!duplicateVerification) return;
+        uint256[] memory indexes = new uint256[](_traits.length);
+
+        unchecked {
+            for (uint256 i = 0; i < _traits.length; i++) {
+                bytes32 tokenHash = createHashFromTraits(_traits[i]);
+                if (hasBeenTaken[tokenHash]) {
+                    indexes[i] = 1;
+                } else {
+                    indexes[i] = 0;
+                    hasBeenTaken[tokenHash] = true;
+                }
+            }
+        }
+
+        if (isInArray(indexes, 1)) {
+            revert TokenHasBeenTakenBefore({indexes: indexes});
         }
     }
 
@@ -2335,6 +2484,7 @@ contract TockableDrop is ERC721AQueryable, Ownable, ReentrancyGuard {
                 '", '
             )
         );
+
         metadata = string(
             abi.encodePacked(
                 metadata,
@@ -2343,9 +2493,11 @@ contract TockableDrop is ERC721AQueryable, Ownable, ReentrancyGuard {
                 '", '
             )
         );
+
         metadata = string(
             abi.encodePacked(metadata, '"symbol": "', TOKEN_SYMBOL, '", ')
         );
+
         metadata = string(
             abi.encodePacked(
                 metadata,
@@ -2354,6 +2506,7 @@ contract TockableDrop is ERC721AQueryable, Ownable, ReentrancyGuard {
                 "}"
             )
         );
+
         return metadata;
     }
 
@@ -2388,9 +2541,7 @@ contract TockableDrop is ERC721AQueryable, Ownable, ReentrancyGuard {
         if (!ow) revert WithdrawFailed();
     }
 
-    receive() external payable {
-        emit tokenReceived(msg.sender, msg.value);
-    }
+    receive() external payable {}
 
     /// Helpers & Utils
     function tokensLeft() public view returns (uint256) {
@@ -2401,11 +2552,42 @@ contract TockableDrop is ERC721AQueryable, Ownable, ReentrancyGuard {
         return getSessionById[_id].allocation - mintedInSessionById[_id];
     }
 
+    function tokensLeftForAddressInRoleInActiveSession(
+        address _address,
+        uint256 _roleId
+    ) private view returns (uint256) {
+        uint256 minted = mintedByAddressInRoleInSessionId[_address][_roleId][
+            activeSession
+        ];
+        uint256 maxMintable = getRoleById[_roleId].maxAllowedMint;
+        return maxMintable - minted;
+    }
+
     function setIpfsHash(
         uint256 _tokenId,
         IpfsHash calldata _ipfsHash
     ) private {
         ipfsHashOf[_tokenId] = _ipfsHash;
+    }
+
+    function setTokenTraits(
+        uint256 _quantity,
+        uint256 _nextTokenIdBeforeMint,
+        IpfsHash[] calldata _cids,
+        bytes32[][] calldata _traits
+    ) private {
+        unchecked {
+            for (uint256 i = 0; i < _quantity; i++) {
+                setIpfsHash(_nextTokenIdBeforeMint + i, _cids[i]);
+                for (uint256 j = 0; j < _traits[i].length; j++) {
+                    if (_traits[i].length != traitTypes.length)
+                        revert InvalidArgs();
+                    traitValueOfTraitTypeOf[_nextTokenIdBeforeMint + i][
+                        traitTypes[j]
+                    ] = _traits[i][j];
+                }
+            }
+        }
     }
 
     function getIpfsHashOf(
@@ -2448,18 +2630,18 @@ contract TockableDrop is ERC721AQueryable, Ownable, ReentrancyGuard {
     }
 
     function createHashFromTraits(
-        Trait[] calldata _traits
-    ) private pure returns (bytes32) {
+        bytes32[] calldata _traits
+    ) private view returns (bytes32) {
         string memory attributes = "";
+        if (_traits.length == 0) revert InvalidArgs();
+        if (_traits.length != traitTypes.length) revert InvalidArgs();
 
-        for (uint256 i = 0; i < _traits.length; i++) {
-            attributes = string(
-                abi.encodePacked(
-                    attributes,
-                    _traits[i].trait_type,
-                    _traits[i].value
-                )
-            );
+        unchecked {
+            for (uint256 i = 0; i < _traits.length; i++) {
+                attributes = string(
+                    abi.encodePacked(attributes, traitTypes[i], _traits[i])
+                );
+            }
         }
         bytes32 hash = keccak256(abi.encodePacked(attributes));
         return hash;
@@ -2469,6 +2651,7 @@ contract TockableDrop is ERC721AQueryable, Ownable, ReentrancyGuard {
         uint256 _tokenId
     ) public view returns (string memory) {
         string memory attributes = "[";
+
         for (uint256 i = 0; i < traitTypes.length - 1; i++) {
             attributes = string(
                 abi.encodePacked(
@@ -2481,6 +2664,7 @@ contract TockableDrop is ERC721AQueryable, Ownable, ReentrancyGuard {
                 )
             );
         }
+
         attributes = string(
             abi.encodePacked(
                 attributes,
@@ -2493,13 +2677,60 @@ contract TockableDrop is ERC721AQueryable, Ownable, ReentrancyGuard {
                 '"}]'
             )
         );
+
         return attributes;
     }
 
+    function getContractData()
+        external
+        view
+        returns (
+            string memory,
+            string memory,
+            string memory,
+            uint256,
+            bool,
+            bool,
+            bool,
+            bool,
+            bytes32[] memory
+        )
+    {
+        return (
+            CONTRACT_NAME,
+            TOKEN_NAME,
+            TOKEN_SYMBOL,
+            TOTAL_SUPPLY,
+            isMintLive,
+            duplicateVerification,
+            isUnlimited,
+            isTraitsFrozen,
+            traitTypes
+        );
+    }
+
+    function getSupplyData(
+        address _address,
+        uint256 _roleId
+    ) external view returns (uint256, uint256, uint256) {
+        uint256 tokensLeftInTotal = tokensLeft();
+        uint256 tokensLeftInActiveSession = tokensLeftInSession(activeSession);
+        uint256 tokensLeftForAddress = tokensLeftForAddressInRoleInActiveSession(
+                _address,
+                _roleId
+            );
+
+        return (
+            tokensLeftInTotal,
+            tokensLeftInActiveSession,
+            tokensLeftForAddress
+        );
+    }
+
     function isInArray(
-        uint256[] storage _arr,
+        uint256[] memory _arr,
         uint256 _val
-    ) private view returns (bool) {
+    ) private pure returns (bool) {
         uint256 len = _arr.length;
         for (uint256 i = 0; i < len; i++) if (_arr[i] == _val) return true;
         return false;

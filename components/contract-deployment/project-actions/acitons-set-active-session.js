@@ -13,7 +13,9 @@ export default function ActionSetActiveSession({ abi }) {
   const { project, setProject } = useContext(LaunchpadContext);
   const [key, setKey] = useState(1);
   const [sessionToActive, setSessionToActive] = useState();
+  const [updating, setUpdating] = useState(false);
   const [sessionName, setSessionName] = useState();
+  const [updated, setUpdated] = useState(false);
   const { config } = usePrepareContractWrite({
     address: project.contractAddress,
     abi: abi,
@@ -36,14 +38,17 @@ export default function ActionSetActiveSession({ abi }) {
   // useEffect(() => {if(!isError) return },[isError])
   useEffect(() => {
     if (!uwt.isSuccess) return;
+    setUpdating(true);
     updateActiveSession(project.creator, project.uuid, sessionToActive).then(
       (res) => {
         if (res.success === true) {
           setKey(key + 1);
+          setUpdated(true);
           setProject(res.payload);
         }
       }
     );
+    setUpdating(false);
   }, [uwt.isSuccess]);
   useEffect(() => {
     if (!sessionToActive) return;
@@ -97,20 +102,26 @@ export default function ActionSetActiveSession({ abi }) {
           })}
       </div>
       <Button
-        disabled={isLoading || uwt.isLoading}
+        disabled={isLoading || uwt.isLoading || updating}
         className="mt-4"
         variant={"secondary"}
         onClick={() => write?.()}
       >
         {(isLoading || uwt.isLoading) && (
-          <Loading isLoading={isLoading || uwt.isLoading} size={10} />
+          <Loading
+            isLoading={isLoading || uwt.isLoading || updating}
+            size={10}
+          />
         )}
-        {!isLoading && !uwt.isLoading && (
+        {!isLoading && !uwt.isLoading && !updating && (
           <p> set active session to {sessionName}</p>
         )}
       </Button>
       {isError && <p className="text-tock-red mt-2 text-xs">{error.name}</p>}
-      {uwt.isSuccess && (
+      {uwt.isError && (
+        <p className="text-tock-red mt-2 text-xs">transaction failed</p>
+      )}
+      {updated && (
         <p className="text-tock-green mt-2 text-xs">
           active session updated successfully
         </p>

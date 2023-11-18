@@ -5,112 +5,122 @@ import {
   useContractWrite,
   useAccount,
   useWaitForTransaction,
+  useContractRead,
 } from "wagmi";
-import { BASE_FEE } from "@/tock.config";
 import { EMPTY_BYTES_32 } from "@/constants/constants";
 import { MintContext } from "@/contexts/mint-context";
-import Button from "../design/button/button";
 import Loading from "../loading/loading";
+import Button from "../design/button/button";
+
+const initialArgs = {
+  args: [
+    1,
+    [{ part1: EMPTY_BYTES_32, part2: EMPTY_BYTES_32 }],
+    EMPTY_BYTES_32,
+    0,
+    [[EMPTY_BYTES_32]],
+  ],
+  value: 0,
+};
 
 export default function Mint({
   handleRoleVisibility,
   prepareMint,
   role,
   session,
-  incrementBlobState,
   show,
 }) {
   function handleClick() {
-    incrementBlobState();
     handleRoleVisibility(role.id);
   }
-  const { blob, project } = useContext(MintContext);
+
+  const { project } = useContext(MintContext);
+
   return (
-    <div className="w-full">
-      <div
-        onClick={handleClick}
-        className="flex grow border border-zinc-400 bg-tock-black rounded-2xl p-4 my-4 mx-4 hover:bg-tock-semiblack transition ease-in-out duration-200 cursor-pointer"
-      >
-        <div className="flex flex-col gap-4 w-full">
-          <div className="flex flex-row">
-            <div className="flex-1">
-              <p className="text-zinc-400 text-xs items-center">
-                as <span className="text-tock-orange text-sm">{role.name}</span>{" "}
-                | max mint/wallet:{" "}
-                <span className="text-tock-orange">{role.quota}</span> | price:{" "}
+    <div
+      onClick={handleClick}
+      className="flex grow border border-zinc-400 bg-tock-black rounded-2xl p-4 my-4 mx-4 hover:bg-tock-semiblack transition ease-in-out duration-200 cursor-pointer"
+    >
+      <div className="flex flex-col gap-4 w-full">
+        <div className="flex flex-row">
+          <div className="flex-1">
+            <p className="text-zinc-400 text-xs items-center">
+              as <span className="text-tock-orange text-sm">{role.name}</span> |
+              max mint/wallet:{" "}
+              <span className="text-tock-orange">{role.quota}</span> | price:{" "}
+              {project.slug.toLowerCase() === "tock" && (
+                <span>
+                  <span className="text-tock-orange">Free</span>
+                </span>
+              )}
+              {project.slug.toLowerCase() !== "tock" && (
                 <span className="text-tock-orange">
-                  {Number(role.price) + Number(BASE_FEE)}{" "}
+                  {Number(role.price) + Number(project.chainData.base_fee)}{" "}
                   {project.chainData.nativeToken}
                 </span>
-              </p>
-            </div>
-            <div className="flex-0 text-tock-green text-xs justify-end">
-              {!show && <p className="">click to expand</p>}
-            </div>
+              )}
+            </p>
           </div>
-
-          {show && (
-            <MintHandler
-              blob={blob}
-              role={role}
-              session={session}
-              prepareMint={prepareMint}
-            />
-          )}
+          <div className="flex-0 text-tock-green text-xs justify-end">
+            {!show && <p className="">click to expand</p>}
+          </div>
         </div>
+
+        {show && (
+          <MintHandler
+            role={role}
+            session={session}
+            prepareMint={prepareMint}
+          />
+        )}
       </div>
     </div>
   );
 }
 
-function MintHandler({ role, prepareMint, session, blob, nativeToken }) {
-  const { abi, project } = useContext(MintContext);
-  //   const [quantity, setQuantity] = useState(1);
-  //   const debouncedQuantity = useDebounce(quantity, 1000);
-  //   function onAmountIncrease(e) {
-  //     if (quantity + 1 <= data.maxMint) setQuantity(quantity + 1);
-  //   }
-  //   function onAmountDecrease(e) {
-  //     if (quantity - 1 >= 0) setQuantity(quantity - 1);
-  //   }
-
-  //   function onMaxAmount() {
-  //     if (quantity == data.maxMint) {
-  //       return true;
-  //     }
-  //     return false;
-  //   }
-
-  //   function onMinAmount() {
-  //     if (quantity == 0) {
-  //       return true;
-  //     }
-  //     return false;
-  //   }
-  const price = parseEther((Number(role.price) + BASE_FEE).toString(), "wei");
+function MintHandler({ role, prepareMint, session }) {
+  const { abi, project, blobs, setDuplicatedIndexes, setSuccessFullyMinted } =
+    useContext(MintContext);
   const { address } = useAccount();
-
-  const [successMint, setSuccessMint] = useState(false);
   const [preparing, setPreparing] = useState(false);
   const [readyToMint, setReadyToMint] = useState(false);
   const [apiError, setApiError] = useState(false);
   const [enableState, setEnableState] = useState(false);
   const [printedError, setPrintedError] = useState("");
   const [warning, setWarning] = useState("");
-  const [writeArgs, setwriteArgs] = useState([
-    1,
-    [{ part1: EMPTY_BYTES_32, part2: EMPTY_BYTES_32 }],
-    EMPTY_BYTES_32,
-    role.id,
-    [[{ trait_type: EMPTY_BYTES_32, value: EMPTY_BYTES_32 }]],
-  ]);
+  const [writeArgs, setwriteArgs] = useState(initialArgs);
+
+  const contractRead = useContractRead({
+    address: project.contractAddress,
+    abi,
+    functionName: "getSupplyData",
+    args: [address, Number(role.id)],
+    structuralSharing: (prev, next) => (prev === next ? prev : next),
+  });
+
+  // useEffect(() => {
+  //   if (!contractRead.data) return;
+  //   if (contractRead.isLoading) return;
+  //   setMintableLeft(contractRead.data);
+  // }, []);
+
+  useEffect(() => {
+    contractRead.refetch?.();
+  }, []);
+
+  function resetMint() {
+    setPreparing(false);
+    setEnableState(false);
+    setReadyToMint(false);
+    setwriteArgs(initialArgs);
+  }
 
   const { config } = usePrepareContractWrite({
     address: project.contractAddress,
     abi: abi,
     functionName: "mint",
-    args: writeArgs,
-    value: price,
+    args: writeArgs.args,
+    value: writeArgs.value,
     enabled: enableState,
     onSuccess(data) {
       setReadyToMint(true);
@@ -123,17 +133,19 @@ function MintHandler({ role, prepareMint, session, blob, nativeToken }) {
         if (revertError instanceof ContractFunctionRevertedError) {
           const errorName = revertError.data?.errorName ?? "";
           if (errorName === "MoreThanAllowed") {
-            setWarning("Mint limit exceeded on this role.");
+            setPrintedError("Mint limit exceeded on this role.");
           } else if (errorName === "MoreThanAvailable") {
-            setWarning("Mint limit exceeded on this session/contract.");
+            setPrintedError("Mint limit exceeded on this session/contract.");
           } else if (errorName === "NotElligible") {
-            setWarning("Mint session changed, Please refresh the page.");
+            setWsetPrintedErrorrning(
+              "Mint session changed, Please refresh the page."
+            );
           } else if (errorName === "TokenHasBeenTakenBefore") {
-            setWarning("This traits has been taken before.");
+            setDuplicatedIndexes(revertError.data.args[0]);
+            setPrintedError("This traits has been taken before.");
           } else if (errorName == "TokenIsTakenBefore") {
-            setWarning("This traits has been taken before.");
+            setPrintedError("This traits has been taken before.");
           } else {
-            setWarning("");
             setPrintedError("Unknown error occured.");
           }
         }
@@ -141,17 +153,8 @@ function MintHandler({ role, prepareMint, session, blob, nativeToken }) {
         setWarning("");
         setPrintedError("Unknown error occured.");
       }
-      setSuccessMint(false);
-      setPreparing(false);
-      setEnableState(false);
-      setReadyToMint(false);
-      setwriteArgs([
-        1,
-        [{ part1: EMPTY_BYTES_32, part2: EMPTY_BYTES_32 }],
-        EMPTY_BYTES_32,
-        role.id,
-        [[{ trait_type: EMPTY_BYTES_32, value: EMPTY_BYTES_32 }]],
-      ]);
+      setSuccessFullyMinted(false);
+      resetMint();
     },
   });
 
@@ -159,18 +162,9 @@ function MintHandler({ role, prepareMint, session, blob, nativeToken }) {
   const uwt = useWaitForTransaction({ hash: wc.data?.hash });
 
   useEffect(() => {
-    if (
-      writeArgs[0] !== 1 ||
-      writeArgs[1].length === 0 ||
-      writeArgs[1][0].part1 === EMPTY_BYTES_32 ||
-      writeArgs[1][0].part2 === EMPTY_BYTES_32 ||
-      writeArgs[2] === EMPTY_BYTES_32 ||
-      writeArgs[4].length === 0 ||
-      writeArgs[4][0][0].trait_type === EMPTY_BYTES_32 ||
-      writeArgs[4][0][0].value === EMPTY_BYTES_32
-    ) {
+    if (invalidArgs(writeArgs)) {
       setPreparing(false);
-      setSuccessMint(false);
+      setSuccessFullyMinted(false);
       return;
     }
     setEnableState(true);
@@ -181,59 +175,31 @@ function MintHandler({ role, prepareMint, session, blob, nativeToken }) {
     async function w() {
       wc.write?.();
     }
-    if (wc.write) {
-      w();
-    }
+    w();
   }, [readyToMint]);
 
   useEffect(() => {
     if (!uwt.isSuccess) return;
-    setSuccessMint(true);
-    setReadyToMint(false);
-    setEnableState(false);
-    setPreparing(false);
-    setPrintedError("");
+    setSuccessFullyMinted(true);
+    contractRead.refetch?.();
+    resetMint();
     setWarning("");
-    setwriteArgs([
-      1,
-      [{ part1: EMPTY_BYTES_32, part2: EMPTY_BYTES_32 }],
-      EMPTY_BYTES_32,
-      role.id,
-      [[{ trait_type: EMPTY_BYTES_32, value: EMPTY_BYTES_32 }]],
-    ]);
+    setPrintedError("");
   }, [uwt.isSuccess]);
 
   useEffect(() => {
     if (!uwt.isError) return;
-    setSuccessMint(false);
-    setReadyToMint(false);
-    setEnableState(false);
-    setPreparing(false);
+    setSuccessFullyMinted(false);
     setWarning("");
     setPrintedError("Transaction failed.");
-    setwriteArgs([
-      1,
-      [{ part1: EMPTY_BYTES_32, part2: EMPTY_BYTES_32 }],
-      EMPTY_BYTES_32,
-      role.id,
-      [[{ trait_type: EMPTY_BYTES_32, value: EMPTY_BYTES_32 }]],
-    ]);
+    resetMint();
   }, [uwt.isError]);
 
   useEffect(() => {
     if (!wc.isError) return;
-    setSuccessMint(false);
-    setReadyToMint(false);
-    setEnableState(false);
-    setPreparing(false);
+    setSuccessFullyMinted(false);
     setWarning("");
-    setwriteArgs([
-      1,
-      [{ part1: EMPTY_BYTES_32, part2: EMPTY_BYTES_32 }],
-      EMPTY_BYTES_32,
-      role.id,
-      [[{ trait_type: EMPTY_BYTES_32, value: EMPTY_BYTES_32 }]],
-    ]);
+    resetMint();
 
     if (
       wc.error.message.match(/^User rejected the request./g) ||
@@ -242,25 +208,46 @@ function MintHandler({ role, prepareMint, session, blob, nativeToken }) {
       ) ||
       wc.error.code == 4001
     ) {
-      setPrintedError("Rejected by user.");
+      setPrintedError("rejected by user");
     } else {
-      setPrintedError("An Error occured");
+      setPrintedError("wallet Error occured");
     }
   }, [wc.isError]);
 
   async function mint() {
-    if (!blob) return;
+    setSuccessFullyMinted(false);
+    if (blobs.length === 0) return;
+
     setPreparing(true);
     setPrintedError("");
     setWarning("");
-    const file = new FormData();
-    file.append("file", blob.blob);
-    const res = await prepareMint(address, role.id, session, file);
+
+    const files = new FormData();
+    const traits = [];
+    blobs.forEach((blob, i) => {
+      files.append(`${i}`, blob.blob);
+      traits.push(blob.traits);
+    });
+
+    const res = await prepareMint(address, role.id, session, files);
     if (res.success === true) {
-      const { cid, signature } = res;
-      const _args = [1, [cid], signature, Number(role.id), [blob.traits]];
+      const { cids, signature } = res;
+      const args = [
+        Number(blobs.length),
+        cids,
+        signature,
+        Number(role.id),
+        traits,
+      ];
+      const value = parseEther(
+        (
+          (Number(role.price) + project.chainData.base_fee) *
+          blobs.length
+        ).toString(),
+        "wei"
+      );
       setApiError(false);
-      setwriteArgs(_args);
+      setwriteArgs({ args, value });
     } else {
       setApiError(true);
       setPreparing(false);
@@ -269,35 +256,85 @@ function MintHandler({ role, prepareMint, session, blob, nativeToken }) {
 
   return (
     <div className="flex flex-col">
-      {/* <div className="flex justify-center select-none">
-         <button
-          className="mt-1 mb-1 border border-zinc-500 transition ease-in-out mx-4 hover:bg-zinc-600 duration-300 bg-tock-semiblack text-zinc-400 font-bold py-2 px-4 rounded-2xl focus:outline-none focus:shadow-outline active:text-white"
-          onClick={onAmountDecrease}
-          disabled={onMinAmount}
-        >
-          -
-        </button>
-
-        <button
-          className="mt-1 mb-1 border border-zinc-500 transition ease-in-out mx-4 hover:bg-zinc-600 duration-300 bg-tock-semiblack text-zinc-400 font-bold py-2 px-4 rounded-2xl focus:outline-none focus:shadow-outline active:text-white"
-          onClick={onAmountIncrease}
-          disabled={onMaxAmount}
-        >
-          +
-        </button> 
-      </div> */}
-
+      <p className="text-zinc-400 text-xs items-center my-2">
+        mint left for wallet on this role:{" "}
+        <span className="text-tock-orange text-sm">
+          {Math.min(
+            parseInt(contractRead?.data[0]),
+            Math.min(
+              parseInt(contractRead?.data[1]),
+              parseInt(contractRead?.data[2])
+            )
+          )}
+        </span>
+      </p>
       <div className="flex justify-center">
         <Button
           variant="primary"
-          disabled={wc.isLoading || uwt.isLoading || preparing}
+          disabled={
+            wc.isLoading ||
+            uwt.isLoading ||
+            preparing ||
+            blobs.length >
+              Math.min(
+                parseInt(contractRead?.data[0]),
+                Math.min(
+                  parseInt(contractRead?.data[1]),
+                  parseInt(contractRead?.data[2])
+                )
+              ) ||
+            blobs.length === 0
+          }
           onClick={() => mint()}
         >
           {!wc.isLoading && !uwt.isLoading && !preparing && (
-            <p className="text-sm">
-              Mint THIS for {Number(role.price) + BASE_FEE}{" "}
-              {project.chainData.nativeToken}
-            </p>
+            <div>
+              {blobs.length === 0 && <p>basket is empty</p>}
+              {blobs.length > 0 && (
+                <div>
+                  {project.slug.toLowerCase() !== "tock" && (
+                    <p className="text-sm">
+                      mint {blobs.length}{" "}
+                      {blobs.length === 1 ? "token" : "tokens"} for{" "}
+                      {parseFloat(
+                        (Number(role.price) + project.chainData.base_fee) *
+                          blobs.length
+                      )
+                        .toPrecision(2)
+                        .toString()
+                        .charAt(
+                          parseFloat(
+                            (Number(role.price) + project.chainData.base_fee) *
+                              blobs.length
+                          )
+                            .toPrecision(2)
+                            .toString().length - 1
+                        ) === "0"
+                        ? parseFloat(
+                            (Number(role.price) + project.chainData.base_fee) *
+                              blobs.length
+                          )
+                            .toPrecision(2)
+                            .toString()
+                            .slice(0, -1)
+                        : parseFloat(
+                            (Number(role.price) + project.chainData.base_fee) *
+                              blobs.length
+                          )
+                            .toPrecision(2)
+                            .toString()}{" "}
+                      {project.chainData.nativeToken}
+                    </p>
+                  )}
+                  {project.slug.toLowerCase() === "tock" && (
+                    <p className="text-sm">
+                      mint {blobs.length}{" "}
+                      {blobs.length === 1 ? "token" : "tokens"} for Free
+                    </p>
+                  )}
+                </div>
+              )}
+            </div>
           )}
           <div>
             {(wc.isLoading || uwt.isLoading || preparing) && (
@@ -309,9 +346,53 @@ function MintHandler({ role, prepareMint, session, blob, nativeToken }) {
           </div>
         </Button>
       </div>
-
+      {blobs.length >
+        Math.min(
+          parseInt(contractRead?.data[0]),
+          Math.min(
+            parseInt(contractRead?.data[1]),
+            parseInt(contractRead?.data[2])
+          )
+        ) && (
+        <p className="text-tock-red text-xs mt-2 border rounded-2xl border-zinc-400 p-4">
+          you are elligible to mint{" "}
+          {Math.min(
+            parseInt(contractRead?.data[0]),
+            Math.min(
+              parseInt(contractRead?.data[1]),
+              parseInt(contractRead?.data[2])
+            )
+          )}{" "}
+          max in this role, please consider removing{" "}
+          {blobs.length -
+            Math.min(
+              parseInt(contractRead?.data[0]),
+              Math.min(
+                parseInt(contractRead?.data[1]),
+                parseInt(contractRead?.data[2])
+              )
+            )}{" "}
+          {blobs.length -
+            Math.min(
+              parseInt(contractRead?.data[0]),
+              Math.min(
+                parseInt(contractRead?.data[1]),
+                parseInt(contractRead?.data[2])
+              )
+            ) ===
+          1
+            ? "token"
+            : "tokens"}{" "}
+          from the basket to enable minting in this role.{" "}
+        </p>
+      )}
       {printedError.length > 0 && (
-        <p className="text-tock-red text-xs">{printedError}</p>
+        <p className="text-tock-red text-xs mt-2">{printedError}</p>
+      )}
+      {preparing && (
+        <p className="text-blue-400 text-xs mt-2">
+          preparing basket... please wait...
+        </p>
       )}
       {warning.length > 0 && (
         <p className="text-tock-orange text-xs mt-2">{warning}</p>
@@ -321,9 +402,22 @@ function MintHandler({ role, prepareMint, session, blob, nativeToken }) {
           something went wrong, please try again.
         </p>
       )}
-      {successMint && (
-        <p className="text-tock-green text-xs mt-2">Successfully minted!</p>
-      )}
     </div>
   );
+}
+
+function invalidArgs(_args) {
+  if (
+    _args.args[1].length === 0 ||
+    _args.args[1][0].part1 === EMPTY_BYTES_32 ||
+    _args.args[1][0].part2 === EMPTY_BYTES_32 ||
+    _args.args[2] === EMPTY_BYTES_32 ||
+    _args.args[4].length === 0 ||
+    _args.args[4][0][0] === EMPTY_BYTES_32 ||
+    _args.value === 0
+  ) {
+    return true;
+  } else {
+    return false;
+  }
 }

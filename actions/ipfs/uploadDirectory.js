@@ -25,7 +25,6 @@ async function prepareFiles(_files) {
   const files = [];
   for (let key of _files.entries()) {
     const file = key[1];
-    // console.log(file, "file");
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
     files.push(

@@ -97,7 +97,7 @@ export default function Session({
           </h1>
           {roles.map((role, i) => {
             return (
-              <div className="flex items-center my-2">
+              <div key={"role_" + i} className="flex items-center my-2">
                 <input
                   id={"sessioon_roles_" + i}
                   type="checkbox"

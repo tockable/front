@@ -1,28 +1,26 @@
 import WagmiProvider from "@/contexts/wagmi-provider";
 import Mintpad from "./mintpad-container";
-import MintpadProjectDetails from "./mintpad-project-details";
 import MintpadHeader from "./mintpad-project-header";
+import MintpadProjectDetails from "./mintpad-project-details";
 import getHashAndSignature from "@/actions/signature/signature";
-import storeFileToIpfs from "@/actions/ipfs/uploadFileToIpfs.js";
+import { getContractAbi } from "@/actions/contract/metadata";
+import storeMultipleFilesToIpfs from "@/actions/ipfs/uploadMultipleFileToIpfs";
 import getCidTuple from "@/actions/utils/cid-utils";
 import Footer from "../design/footer";
-import { getContractAbi } from "@/actions/contract/metadata";
-import Socialbar from "../design/social-bar/socialbar";
 import NavbarLaunchpad from "../design/navbar/navvar-launchpad";
+import Socialbar from "../design/social-bar/socialbar";
 
-async function callGetContractAbi(_creator, _uuid, _projectName) {
+async function callGetContractAbi(_dropType) {
   "use server";
-  const res = await getContractAbi(_creator, _uuid, _projectName);
+  const res = await getContractAbi(_dropType);
   return res;
 }
 
 export default async function MintpadLanding({ project }) {
-  async function prepareMint(_address, _roleId, _sessionId, _file) {
+  async function prepareMint(_address, _roleId, _sessionId, _files) {
     "use server";
 
-    const blob = _file.get("file");
-    const buffer = await blob.arrayBuffer();
-    const ipfsRes = await storeFileToIpfs(buffer, "image/png");
+    const ipfsRes = await storeMultipleFilesToIpfs(_files);
 
     if (!ipfsRes.success) {
       return {
@@ -31,7 +29,12 @@ export default async function MintpadLanding({ project }) {
       };
     }
 
-    const cid = getCidTuple(ipfsRes.cid);
+    const cids = [];
+
+    ipfsRes.cids.forEach((cid) => {
+      const _cid = getCidTuple(cid);
+      cids.push(_cid);
+    });
 
     const sigRes = await getHashAndSignature(
       project?.creator,
@@ -50,7 +53,7 @@ export default async function MintpadLanding({ project }) {
 
     return {
       success: true,
-      cid,
+      cids,
       signature: sigRes.payload.signature,
     };
   }

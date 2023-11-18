@@ -20,6 +20,7 @@ export default function ActionMintStatus({ abi }) {
   });
   const [success, setSuccess] = useState(false);
   const [isWriting, setWriting] = useState(false);
+
   const { data, isLoading, isError, write, error } = useContractWrite(config);
   const uwt = useWaitForTransaction({ hash: data?.hash });
 
@@ -46,6 +47,9 @@ export default function ActionMintStatus({ abi }) {
         {!isLoading && !uwt.isLoading && !isWriting && <p>pause mint</p>}
       </Button>
       {isError && <p className="text-tock-red mt-2 text-sx">{error.name}</p>}
+      {uwt.isError && (
+        <p className="text-tock-red mt-2 text-xs">transaction failed</p>
+      )}
       {success && <p className="text-tock-green mt-2 text-sx">Mint paused.</p>}
     </section>
   );

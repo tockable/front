@@ -11,17 +11,18 @@ import { MintContext } from "@/contexts/mint-context";
 import Button from "../design/button/button";
 import Loading from "../loading/loading";
 
-// import decodeCid from "@/actions/utils/decode-cid";
-// import { imageUrlFromBlob } from "@/utils/image-utils";
-
-export default function AdminMint({ prepareMint, incrementBlobState }) {
+const initialArgs = [
+  1,
+  [{ part1: EMPTY_BYTES_32, part2: EMPTY_BYTES_32 }],
+  [[{ trait_type: EMPTY_BYTES_32, value: EMPTY_BYTES_32 }]],
+];
+export default function AdminMint({ prepareMint }) {
   const [show, setShow] = useState(false);
-  const { blob } = useContext(MintContext);
 
   function handleClick() {
     setShow(true);
-    incrementBlobState();
   }
+
   return (
     <div className="w-full">
       <div
@@ -43,52 +44,15 @@ export default function AdminMint({ prepareMint, incrementBlobState }) {
               {!show && <span>click to expand</span>}
             </div>
           </div>
-          {show && (
-            <MintHandler
-              prepareMint={prepareMint}
-              incrementBlobState={incrementBlobState}
-              blob={blob}
-            />
-          )}
+          {show && <MintHandler prepareMint={prepareMint} />}
         </div>
       </div>
     </div>
   );
 }
 
-function MintHandler({ prepareMint, incrementBlobState, blob }) {
-  const { abi } = useContext(MintContext);
-  //   const [quantity, setQuantity] = useState(1);
-  //   const debouncedQuantity = useDebounce(quantity, 1000);
-  //   function onAmountIncrease(e) {
-  //     if (quantity + 1 <= data.maxMint) setQuantity(quantity + 1);
-  //   }
-  //   function onAmountDecrease(e) {
-  //     if (quantity - 1 >= 0) setQuantity(quantity - 1);
-  //   }
-
-  //   function onMaxAmount() {
-  //     if (quantity == data.maxMint) {
-  //       return true;
-  //     }
-  //     return false;
-  //   }
-
-  //   function onMinAmount() {
-  //     if (quantity == 0) {
-  //       return true;
-  //     }
-  //     return false;
-  //   }
-
-  ///
-  // const [imageUrl, setImageUrl] = useState("");
-  // const [showblob, setShowBlob] = useState(false);
-  // const [ipfsUrl, setIpfsUrl] = useState("");
-  // const [showIpfs, setShowIpfs] = useState(false);
-
-  ///
-  const { project } = useContext(MintContext);
+function MintHandler({ prepareMint }) {
+  const { abi, project, blobs, setDuplicatedIndexes } = useContext(MintContext);
   const { address } = useAccount();
 
   const [successMint, setSuccessMint] = useState(false);
@@ -98,11 +62,14 @@ function MintHandler({ prepareMint, incrementBlobState, blob }) {
   const [enableState, setEnableState] = useState(false);
   const [printedError, setPrintedError] = useState("");
   const [warning, setWarning] = useState("");
-  const [writeArgs, setwriteArgs] = useState([
-    1,
-    [{ part1: EMPTY_BYTES_32, part2: EMPTY_BYTES_32 }],
-    [[{ trait_type: EMPTY_BYTES_32, value: EMPTY_BYTES_32 }]],
-  ]);
+  const [writeArgs, setwriteArgs] = useState(initialArgs);
+
+  function resetMint() {
+    setPreparing(false);
+    setEnableState(false);
+    setReadyToMint(false);
+    setwriteArgs(initialArgs);
+  }
 
   const { config } = usePrepareContractWrite({
     address: project.contractAddress,
@@ -121,15 +88,16 @@ function MintHandler({ prepareMint, incrementBlobState, blob }) {
         if (revertError instanceof ContractFunctionRevertedError) {
           const errorName = revertError.data?.errorName ?? "";
           if (errorName === "MoreThanAllowed") {
-            setWarning("Mint limit exceeded on this role.");
+            setPrintedError("Mint limit exceeded on this role.");
           } else if (errorName === "MoreThanAvailable") {
-            setWarning("Mint limit exceeded on this session/contract.");
+            setPrintedError("Mint limit exceeded on this session/contract.");
           } else if (errorName === "NotElligible") {
-            setWarning("Mint session changed, Please refresh the page.");
+            setPrintedError("Mint session changed, Please refresh the page.");
           } else if (errorName === "TokenHasBeenTakenBefore") {
-            setWarning("This traits has been taken before.");
+            setPrintedError("This traits has been taken before.");
+            setDuplicatedIndexes(revertError.data.args[0]);
           } else if (errorName == "TokenIsTakenBefore") {
-            setWarning("This traits has been taken before.");
+            setPrintedError("This traits has been taken before.");
           } else {
             setWarning("");
             setPrintedError("Unknown error occured.");
@@ -140,14 +108,7 @@ function MintHandler({ prepareMint, incrementBlobState, blob }) {
         setPrintedError("Unknown error occured.");
       }
       setSuccessMint(false);
-      setPreparing(false);
-      setEnableState(false);
-      setReadyToMint(false);
-      setwriteArgs([
-        1,
-        [{ part1: EMPTY_BYTES_32, part2: EMPTY_BYTES_32 }],
-        [[{ trait_type: EMPTY_BYTES_32, value: EMPTY_BYTES_32 }]],
-      ]);
+      resetMint();
     },
   });
 
@@ -155,15 +116,7 @@ function MintHandler({ prepareMint, incrementBlobState, blob }) {
   const uwt = useWaitForTransaction({ hash: wc.data?.hash });
 
   useEffect(() => {
-    if (
-      writeArgs[0] !== 1 ||
-      writeArgs[1].length === 0 ||
-      writeArgs[1][0].part1 === EMPTY_BYTES_32 ||
-      writeArgs[1][0].part2 === EMPTY_BYTES_32 ||
-      writeArgs[2].length === 0 ||
-      writeArgs[2][0][0].trait_type === EMPTY_BYTES_32 ||
-      writeArgs[2][0][0].value === EMPTY_BYTES_32
-    ) {
+    if (invalidArgs(writeArgs)) {
       setPreparing(false);
       setSuccessMint(false);
       return;
@@ -184,45 +137,24 @@ function MintHandler({ prepareMint, incrementBlobState, blob }) {
   useEffect(() => {
     if (!uwt.isSuccess) return;
     setSuccessMint(true);
-    setReadyToMint(false);
-    setEnableState(false);
-    setPreparing(false);
-    setPrintedError("");
+    resetMint();
     setWarning("");
-    setwriteArgs([
-      1,
-      [{ part1: EMPTY_BYTES_32, part2: EMPTY_BYTES_32 }],
-      [[{ trait_type: EMPTY_BYTES_32, value: EMPTY_BYTES_32 }]],
-    ]);
+    setPrintedError("");
   }, [uwt.isSuccess]);
 
   useEffect(() => {
     if (!uwt.isError) return;
     setSuccessMint(false);
-    setReadyToMint(false);
-    setEnableState(false);
-    setPreparing(false);
     setWarning("");
     setPrintedError("Transaction failed.");
-    setwriteArgs([
-      1,
-      [{ part1: EMPTY_BYTES_32, part2: EMPTY_BYTES_32 }],
-      [[{ trait_type: EMPTY_BYTES_32, value: EMPTY_BYTES_32 }]],
-    ]);
+    resetMint();
   }, [uwt.isError]);
 
   useEffect(() => {
     if (!wc.isError) return;
     setSuccessMint(false);
-    setReadyToMint(false);
-    setEnableState(false);
-    setPreparing(false);
     setWarning("");
-    setwriteArgs([
-      1,
-      [{ part1: EMPTY_BYTES_32, part2: EMPTY_BYTES_32 }],
-      [[{ trait_type: EMPTY_BYTES_32, value: EMPTY_BYTES_32 }]],
-    ]);
+    resetMint();
 
     if (
       wc.error.message.match(/^User rejected the request./g) ||
@@ -238,32 +170,23 @@ function MintHandler({ prepareMint, incrementBlobState, blob }) {
   }, [wc.isError]);
 
   async function mint() {
-    incrementBlobState();
-    if (!blob) return;
-    setSuccessMint(false);
+    if (blobs.length === 0) return;
+
     setPreparing(true);
     setPrintedError("");
     setWarning("");
-    const file = new FormData();
-    ///
-    ///
-    // const url = imageUrlFromBlob(blob.blob);
-    // setImageUrl(url);
-    // setShowBlob(true);
-    ///
-    ///
-    file.append("file", blob.blob);
-    const res = await prepareMint(address, 99, 99, file);
+
+    const files = new FormData();
+    const traits = [];
+    blobs.forEach((blob, i) => {
+      files.append(`${i}`, blob.blob);
+      traits.push(blob.traits);
+    });
+
+    const res = await prepareMint(address, 0, 0, files);
     if (res.success === true) {
-      const { cid } = res;
-      ///
-      ///
-      // const decoded = decodeCid(cid);
-      // setIpfsUrl(`https://ipfs.io/ipfs/${decoded}`);
-      // setShowIpfs(true);
-      ///
-      ///
-      const _args = [1, [cid], [blob.traits]];
+      const { cids } = res;
+      const _args = [Number(blobs.length), cids, traits];
       setApiError(false);
       setwriteArgs(_args);
     } else {
@@ -274,32 +197,19 @@ function MintHandler({ prepareMint, incrementBlobState, blob }) {
 
   return (
     <div className="flex flex-col">
-      {/* <div className="flex justify-center select-none">
-         <button
-          className="mt-1 mb-1 border border-zinc-500 transition ease-in-out mx-4 hover:bg-zinc-600 duration-300 bg-tock-semiblack text-zinc-400 font-bold py-2 px-4 rounded-2xl focus:outline-none focus:shadow-outline active:text-white"
-          onClick={onAmountDecrease}
-          disabled={onMinAmount}
-        >
-          -
-        </button>
-
-        <button
-          className="mt-1 mb-1 border border-zinc-500 transition ease-in-out mx-4 hover:bg-zinc-600 duration-300 bg-tock-semiblack text-zinc-400 font-bold py-2 px-4 rounded-2xl focus:outline-none focus:shadow-outline active:text-white"
-          onClick={onAmountIncrease}
-          disabled={onMaxAmount}
-        >
-          +
-        </button> 
-      </div> */}
-
       <div className="flex justify-center">
         <Button
           variant="primary"
-          disabled={wc.isLoading || uwt.isLoading || preparing}
+          disabled={
+            wc.isLoading || uwt.isLoading || preparing || blobs.length === 0
+          }
           onClick={() => mint()}
         >
           {!wc.isLoading && !uwt.isLoading && !preparing && (
-            <p className="text-sm">Mint THIS for free</p>
+            <p className="text-sm">
+              mint {blobs.length} {blobs.length === 1 ? "token" : "tokens"} for
+              Free
+            </p>
           )}
           <div>
             {(wc.isLoading || uwt.isLoading || preparing) && (
@@ -311,8 +221,6 @@ function MintHandler({ prepareMint, incrementBlobState, blob }) {
           </div>
         </Button>
       </div>
-      {/* {showIpfs && <img src={ipfsUrl} width={200} />}
-      {showblob && <img src={imageUrl} width={200} />} */}
 
       {printedError.length > 0 && (
         <p className="text-tock-red text-xs">{printedError}</p>
@@ -330,4 +238,18 @@ function MintHandler({ prepareMint, incrementBlobState, blob }) {
       )}
     </div>
   );
+}
+
+function invalidArgs(_args) {
+  if (
+    _args[1].length === 0 ||
+    _args[1][0].part1 === EMPTY_BYTES_32 ||
+    _args[1][0].part2 === EMPTY_BYTES_32 ||
+    _args[2].length === 0 ||
+    _args[2][0][0] === EMPTY_BYTES_32
+  ) {
+    return true;
+  } else {
+    return false;
+  }
 }

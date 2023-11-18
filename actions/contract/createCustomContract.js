@@ -34,10 +34,19 @@ export default async function createCostimizedContractFile(
     /uint256 public constant TOTAL_SUPPLY = 0;/g,
     `uint256 public constant TOTAL_SUPPLY = ${Number(_project.totalSupply)};`
   );
-  editedBaseContract = editedBaseContract.replace(
-    /uint256 private constant BASE_FEE = 0.0002 ether;/g,
-    `uint256 private constant BASE_FEE = ${Number(base_fee)} ether;`
-  );
+
+  if (_project.slug.toLowerCase() === "tock") {
+    editedBaseContract = editedBaseContract.replace(
+      /uint256 private constant BASE_FEE = 0.0002 ether;/g,
+      `uint256 private constant BASE_FEE = 0 ether;`
+    );
+  } else {
+    editedBaseContract = editedBaseContract.replace(
+      /uint256 private constant BASE_FEE = 0.0002 ether;/g,
+      `uint256 private constant BASE_FEE = ${Number(base_fee)} ether;`
+    );
+  }
+
   editedBaseContract = editedBaseContract.replace(
     /uint256 private constant FIRST_TOKEN_ID = 1;/g,
     `uint256 private constant FIRST_TOKEN_ID = ${Number(

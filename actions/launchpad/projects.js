@@ -20,7 +20,11 @@ const DATABASE = process.env.DATABASE;
 export async function fetchProjectByUUID(_creator, _uuid) {
   if (!_creator.match(/(\b0x[a-fA-F0-9]{40}\b)/g))
     return { success: false, message: "Invalid wallet address" };
+
   const projectsPath = getProjectDirectory(_creator);
+  if (!fs.existsSync(projectsPath)) {
+    return { success: false };
+  }
   const json = fs.readFileSync(projectsPath, { encoding: "utf8" });
   const projects = JSON.parse(json);
 
@@ -258,7 +262,8 @@ export async function publishProject(_uuid, _creator) {
       image: projects[ind].image,
       chain: projects[ind].chain,
       slug: projects[ind].slug,
-      creator: _creator,
+      creator: projects[ind].creator,
+      contractAddress: projects[ind].contractAddress,
     };
     const editedPublishedProjects = [...publishedProjects, newPublishedProject];
     await fs.promises.writeFile(
@@ -319,6 +324,13 @@ export async function unPublishProject(_uuid, _creator) {
   }
 }
 
+/**
+ *
+ * @param {*} _uuid
+ * @param {*} _creator
+ * @param {*} _contractAddress
+ * @returns
+ */
 export async function updateDeployStatus(_uuid, _creator, _contractAddress) {
   const projectsPath = getProjectDirectory(_creator);
   const json = fs.readFileSync(projectsPath, { encoding: "utf8" });
@@ -342,6 +354,13 @@ export async function updateDeployStatus(_uuid, _creator, _contractAddress) {
   }
 }
 
+/**
+ *
+ * @param {*} _uuid
+ * @param {*} _creator
+ * @param {*} _signer
+ * @returns
+ */
 export async function upddateProjectSigner(_uuid, _creator, _signer) {
   const projectsPath = getProjectDirectory(_creator);
   const json = fs.readFileSync(projectsPath, { encoding: "utf8" });
@@ -364,6 +383,15 @@ export async function upddateProjectSigner(_uuid, _creator, _signer) {
   }
 }
 
+/**
+ *
+ * @param {*} _uuid
+ * @param {*} _creator
+ * @param {*} _layers
+ * @param {*} _layerFilesNames
+ * @param {*} _cids
+ * @returns
+ */
 export async function updateProjectMetadata(
   _uuid,
   _creator,
@@ -382,7 +410,7 @@ export async function updateProjectMetadata(
     projects[ind].layers = _layers;
     projects[ind].fileNames = _layerFilesNames;
     projects[ind].cids = _cids;
-    await fs.promises.writeFile(projectsPath, JSON.stringify(projects));
+    fs.writeFileSync(projectsPath, JSON.stringify(projects));
 
     return {
       success: true,
@@ -390,10 +418,18 @@ export async function updateProjectMetadata(
       message: "metadata updated successfully",
     };
   } catch (err) {
+    console.log(err);
     return { success: false, message: err.message };
   }
 }
 
+/**
+ *
+ * @param {*} _creator
+ * @param {*} _uuid
+ * @param {*} _activeSession
+ * @returns
+ */
 export async function updateActiveSession(_creator, _uuid, _activeSession) {
   const projectsPath = getProjectDirectory(_creator);
   const json = fs.readFileSync(projectsPath, { encoding: "utf8" });
@@ -417,6 +453,12 @@ export async function updateActiveSession(_creator, _uuid, _activeSession) {
   }
 }
 
+/**
+ *
+ * @param {*} _creator
+ * @param {*} _uuid
+ * @returns
+ */
 export async function setMintPaused(_creator, _uuid) {
   const projectsPath = getProjectDirectory(_creator);
   const json = fs.readFileSync(projectsPath, { encoding: "utf8" });
@@ -439,6 +481,12 @@ export async function setMintPaused(_creator, _uuid) {
   }
 }
 
+/**
+ *
+ * @param {*} _creator
+ * @param {*} _uuid
+ * @returns
+ */
 export async function updateIsVerified(_creator, _uuid) {
   const projectsPath = getProjectDirectory(_creator);
   const json = fs.readFileSync(projectsPath, { encoding: "utf8" });

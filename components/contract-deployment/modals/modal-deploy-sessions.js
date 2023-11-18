@@ -22,6 +22,7 @@ export default function DeploySessionsModal({
   const { address } = useAccount();
   const [success, setSuccess] = useState(false);
   const [failed, setFailed] = useState(false);
+  const [updating, setUpdating] = useState(false);
 
   const { config } = usePrepareContractWrite({
     address: project.contractAddress,
@@ -37,7 +38,7 @@ export default function DeploySessionsModal({
       setSuccess(false);
       return;
     }
-
+    setUpdating(true);
     updateProjectSessions(address, {
       uuid: project.uuid,
       sessions,
@@ -48,8 +49,8 @@ export default function DeploySessionsModal({
       } else {
         setFailed(true);
       }
-      setSuccess(true);
     });
+    setUpdating(false);
   }, [uwt.isSuccess]);
 
   return (
@@ -71,12 +72,12 @@ export default function DeploySessionsModal({
                   <Button
                     variant="primary"
                     type="button"
-                    disabled={isLoading || uwt.isLoading}
+                    disabled={isLoading || uwt.isLoading || updating}
                     onClick={() => write?.()}
                   >
                     {(isLoading || uwt.isLoading) && (
                       <Loading
-                        isLoading={isLoading || uwt.isLoading}
+                        isLoading={isLoading || uwt.isLoading || updating}
                         size={10}
                       />
                     )}

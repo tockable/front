@@ -29,8 +29,6 @@ export default function CreatorDashboard() {
   const { disconnectAsync } = useDisconnect();
 
   const [projects, setProjects] = useState([]);
-  const [isVerified, setVerified] = useState(false);
-  const [verifiedAddress, setVerifiedAddress] = useState(null);
   const [newPojectModalShow, setNewProjectModelShow] = useState(false);
   const [sessionStatus, setSessionStatus] = useState(null);
 
@@ -53,6 +51,8 @@ export default function CreatorDashboard() {
         if (res.success === true) setProjects(res.payload);
         else if (res.success === false) setProjects([]);
       });
+    } else {
+      router.push("/auth");
     }
   }, []);
 
@@ -118,7 +118,6 @@ export default function CreatorDashboard() {
                   <div>
                     <NewProjectModal
                       isOpen={newPojectModalShow}
-                      verifiedAddress={verifiedAddress}
                       onClose={handleCloseNewProjectModal}
                     />
                   </div>
