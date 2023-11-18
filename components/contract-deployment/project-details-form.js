@@ -54,11 +54,11 @@ export default function ProjectDetailsForm() {
     if (!project) return;
     if (project.image) {
       setImageToShow(`${IPFS_GATEWAY}/${project.image}`);
-      if (!showImage) setShowImage(true);
+      setShowImage(true);
     }
     if (project.cover) {
       setCoverToShow(`${IPFS_GATEWAY}/${project.cover}`);
-      if (!showCover) setShowCover(true);
+      setShowCover(true);
     }
   }, [project]);
 
@@ -70,9 +70,7 @@ export default function ProjectDetailsForm() {
       const blob = new Blob([res]);
       const url = imageUrlFromBlob(blob);
       setImageToShow(url);
-      if (!showImage) {
-        setShowImage(true);
-      }
+      setShowImage(true);
     });
   }, [image]);
 
@@ -84,9 +82,7 @@ export default function ProjectDetailsForm() {
       const blob = new Blob([res]);
       const url = imageUrlFromBlob(blob);
       setCoverToShow(url);
-      if (!showCover) {
-        setShowCover(true);
-      }
+      setShowCover(true);
     });
   }, [cover]);
 
@@ -110,8 +106,8 @@ export default function ProjectDetailsForm() {
 
   function clearCover() {
     if (!cover && !coverToShow) return;
-    if (coverTypeError) setCoverTypeError(false);
-    if (coverSizeError) setCoverSizeError(false);
+    setCoverTypeError(false);
+    setCoverSizeError(false);
     if (project.cover) {
       setCoverChanged(true);
     } else {
@@ -141,16 +137,12 @@ export default function ProjectDetailsForm() {
 
   function onImageUpload(file) {
     setImage(file);
-    if (!imageChanged) {
-      setImageChanged(true);
-    }
+    setImageChanged(true);
   }
 
   function onCoverUpload(file) {
     setCover(file);
-    if (!coverChanged) {
-      setCoverChanged(true);
-    }
+    setCoverChanged(true);
   }
 
   function onChangeName(e) {
@@ -213,9 +205,9 @@ export default function ProjectDetailsForm() {
     }
 
     setSaving(true);
-    if (success) setSuccess(false);
-    if (failed) setFailed(false);
-    if (errorMessage) setErrorMessage("");
+    setSuccess(false);
+    setFailed(false);
+    setErrorMessage("");
     if (project.slug != slug) {
       const slugRes = await checkUniqueSlug(slug);
       if (slugRes.success === false) {
@@ -264,8 +256,8 @@ export default function ProjectDetailsForm() {
         return;
       }
     }
-    if (imageChanged) setImageChanged(false);
-    if (coverChanged) setCoverChanged(false);
+    setImageChanged(false);
+    setCoverChanged(false);
     setProject(res.payload);
     setSuccess(true);
     setSaving(false);

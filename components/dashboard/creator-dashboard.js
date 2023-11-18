@@ -31,6 +31,18 @@ export default function CreatorDashboard() {
   const [projects, setProjects] = useState([]);
   const [newPojectModalShow, setNewProjectModelShow] = useState(false);
   const [sessionStatus, setSessionStatus] = useState(null);
+  useEffect(() => {
+    console.log(address);
+    if (!address) return;
+    if (!sessionStatus) return;
+    if (
+      sessionStatus.data?.user?.address?.toLowerCase() !=
+      address.toLocaleLowerCase()
+    ) {
+      localStorage.setItem("tock", `/dashboard`);
+      router.push("/auth");
+    }
+  }, [address]);
 
   useEffect(() => {
     if (!sessionStatus) return;
@@ -52,6 +64,7 @@ export default function CreatorDashboard() {
         else if (res.success === false) setProjects([]);
       });
     } else {
+      localStorage.setItem("tock", "/dashboard");
       router.push("/auth");
     }
   }, []);

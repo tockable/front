@@ -31,7 +31,7 @@ export default function NewProjectModal({ isOpen, onClose }) {
   async function handleCreateNewProject() {
     if (name.length == 0) return;
     setCreating(true);
-    if (error) setError(false);
+    setError(false);
     const chainData = getChainData(Number(chainId));
     const project = {
       name: name,
@@ -45,8 +45,8 @@ export default function NewProjectModal({ isOpen, onClose }) {
       router.push(`/launchpad/${launchpadSlug}`);
     } else {
       setError(true);
+      setCreating(false);
     }
-    setCreating(false);
   }
 
   function noSubmit(e) {
@@ -115,8 +115,8 @@ export default function NewProjectModal({ isOpen, onClose }) {
               onChange={onChangeChain}
               required
             >
-              {/* <option value="1">Ethereum</option>
-              <option value="10">Optimism</option> */}
+              {/* <option value="1">Ethereum</option>*/}
+              <option value="10">Optimism</option>
               <option value="420">Optimism goerli</option>
               <option value="137">Polygon</option>
               <option value="80001">Polygon mumbai</option>

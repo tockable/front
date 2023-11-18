@@ -16,6 +16,8 @@ export default function ProjectMetadataFrom() {
   const [key, setKey] = useState(0);
   // Error
   const [emptyLayerError, setEmptyLayerError] = useState(false);
+  const [imageTypeError, setImageTypeError] = useState(-1);
+  const [imageSizeError, setImageSizeError] = useState(-1);
   // Modals
   const [newMetadataModalShow, setNewMetadataModelShow] = useState(false);
   const [testAppModalShow, setTestAppModalShow] = useState(false);
@@ -30,6 +32,8 @@ export default function ProjectMetadataFrom() {
     let layerTemp = layersFiles;
     const index = layers.indexOf(_layer);
     layerTemp[index] = _files;
+    setImageSizeError(-1);
+    setImageTypeError(-1);
     setLayerFiles(layerTemp);
     setKey(key + 1);
   }
@@ -209,28 +213,42 @@ export default function ProjectMetadataFrom() {
                 </div>
               )}
               {layersFiles[i].length == 0 && (
-                <div className="mb-10">
-                  <FileUploader
-                    handleChange={(file) => handleLayerFileUpload(file, layer)}
-                    name="file"
-                    maxSize={2}
-                    //   onSizeError={() => setCoverSizeError(true)}
-                    //   onTypeError={() => setCoverTypeError(true)}
-                    types={projectImageFileTypes}
-                    hoverTitle="Drop"
-                    multiple
-                    children={
-                      <div className="border border-dashed border-zinc-200 rounded-xl text-sm text-zinc-500 h-24 text-center pt-8">
-                        <span className="mt-2">drop files here</span>
-                      </div>
-                    }
-                    dropMessageStyle={{
-                      backgroundColor: "grey",
-                      color: "white",
-                      border: "1px dashed white",
-                      borderRadius: "12px",
-                    }}
-                  />
+                <div>
+                  <div className="mb-10">
+                    <FileUploader
+                      handleChange={(file) =>
+                        handleLayerFileUpload(file, layer)
+                      }
+                      name="file"
+                      maxSize={0.3}
+                      onSizeError={() => setImageSizeError(i)}
+                      onTypeError={() => setImageTypeError(i)}
+                      types={projectImageFileTypes}
+                      hoverTitle="Drop"
+                      multiple
+                      children={
+                        <div className="border border-dashed border-zinc-200 rounded-xl text-sm text-zinc-500 h-24 text-center pt-8">
+                          <span className="mt-2">drop files here</span>
+                        </div>
+                      }
+                      dropMessageStyle={{
+                        backgroundColor: "grey",
+                        color: "white",
+                        border: "1px dashed white",
+                        borderRadius: "12px",
+                      }}
+                    />
+                    {imageSizeError == i && (
+                      <p className="text-tock-red mt-2 text-xs">
+                        max allowed file size is 300kb
+                      </p>
+                    )}
+                    {imageTypeError == i && (
+                      <p className="text-tock-red mt-2 text-xs">
+                        only .png supported
+                      </p>
+                    )}
+                  </div>
                 </div>
               )}
             </div>

@@ -13,7 +13,7 @@ export default function ActionSetActiveSession({ abi }) {
   const { project, setProject } = useContext(LaunchpadContext);
   const [key, setKey] = useState(1);
   const [sessionToActive, setSessionToActive] = useState();
-  const [updating, setUpdating] = useState(false);
+  const [isWriting, setWriting] = useState(false);
   const [sessionName, setSessionName] = useState();
   const [updated, setUpdated] = useState(false);
   const { config } = usePrepareContractWrite({
@@ -38,7 +38,7 @@ export default function ActionSetActiveSession({ abi }) {
   // useEffect(() => {if(!isError) return },[isError])
   useEffect(() => {
     if (!uwt.isSuccess) return;
-    setUpdating(true);
+    setWriting(true);
     updateActiveSession(project.creator, project.uuid, sessionToActive).then(
       (res) => {
         if (res.success === true) {
@@ -48,7 +48,7 @@ export default function ActionSetActiveSession({ abi }) {
         }
       }
     );
-    setUpdating(false);
+    setWriting(false);
   }, [uwt.isSuccess]);
   useEffect(() => {
     if (!sessionToActive) return;
@@ -102,21 +102,26 @@ export default function ActionSetActiveSession({ abi }) {
           })}
       </div>
       <Button
-        disabled={isLoading || uwt.isLoading || updating}
+        disabled={isLoading || uwt.isLoading || isWriting}
         className="mt-4"
         variant={"secondary"}
         onClick={() => write?.()}
       >
-        {(isLoading || uwt.isLoading) && (
+        {(isLoading || uwt.isLoading || isWriting) && (
           <Loading
-            isLoading={isLoading || uwt.isLoading || updating}
+            isLoading={isLoading || uwt.isLoading || isWriting}
             size={10}
           />
         )}
-        {!isLoading && !uwt.isLoading && !updating && (
+        {!isLoading && !uwt.isLoading && !isWriting && (
           <p> set active session to {sessionName}</p>
         )}
       </Button>
+      {(isLoading || uwt.isLoading || isWriting) && (
+        <p className="text-tock-orange mt-2 text-xs">
+          do not close this window, or change tab...
+        </p>
+      )}
       {isError && <p className="text-tock-red mt-2 text-xs">{error.name}</p>}
       {uwt.isError && (
         <p className="text-tock-red mt-2 text-xs">transaction failed</p>

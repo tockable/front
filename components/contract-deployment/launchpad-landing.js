@@ -6,7 +6,6 @@ import { fetchProjectByUUID } from "@/actions/launchpad/projects";
 import { getContractAbi } from "@/actions/contract/metadata";
 import { LaunchpadContext } from "@/contexts/project-context";
 import Launchpad from "./launchpad";
-import NotFound from "../not-found/not-found";
 
 export default function LaunchpadLanding({ params }) {
   const session = useSession();
@@ -35,6 +34,18 @@ export default function LaunchpadLanding({ params }) {
       }
     });
   }, []);
+
+  useEffect(() => {
+    if (!address) return;
+    if (!sessionStatus) return;
+    if (
+      sessionStatus.data?.user?.address?.toLowerCase() !=
+      address.toLocaleLowerCase()
+    ) {
+      localStorage.setItem("tock", `/dashboard`);
+      router.push("/auth");
+    }
+  }, [address]);
 
   useEffect(() => {
     if (session.status === "loading") return;

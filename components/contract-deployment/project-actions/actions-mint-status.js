@@ -18,6 +18,7 @@ export default function ActionMintStatus({ abi }) {
     functionName: "setMintIsLive",
     args: [false],
   });
+
   const [success, setSuccess] = useState(false);
   const [isWriting, setWriting] = useState(false);
 
@@ -28,9 +29,7 @@ export default function ActionMintStatus({ abi }) {
     if (!uwt.isSuccess) return;
     setWriting(true);
     setMintPaused(project.creator, project.uuid).then((res) => {
-      if (res.success === true) {
-        setSuccess(true);
-      }
+      if (res.success === true) setSuccess(true);
     });
     setWriting(false);
   }, [uwt.isSuccess]);
@@ -40,17 +39,28 @@ export default function ActionMintStatus({ abi }) {
       <div>
         <h1 className="font-bold text-sm text-tock-blue mb-4 ">Pause mint</h1>
       </div>
+      <p className="text-zinc-400 text-xs mt-4 mb-8">
+        you can unpaused mint by setting your active session again.
+      </p>
       <Button className="mt-4" variant={"secondary"} onClick={() => write?.()}>
         {(isLoading || uwt.isLoading || isWriting) && (
-          <Loading isLoading={isLoading || uwt.isLoading} size={10} />
+          <Loading
+            isLoading={isLoading || uwt.isLoading || isWriting}
+            size={10}
+          />
         )}
         {!isLoading && !uwt.isLoading && !isWriting && <p>pause mint</p>}
       </Button>
-      {isError && <p className="text-tock-red mt-2 text-sx">{error.name}</p>}
+      {(isLoading || uwt.isLoading || isWriting) && (
+        <p className="text-tock-orange mt-2 text-xs">
+          do not close this window, or change tab...
+        </p>
+      )}
+      {isError && <p className="text-tock-red mt-2 text-xs">{error.name}</p>}
       {uwt.isError && (
         <p className="text-tock-red mt-2 text-xs">transaction failed</p>
       )}
-      {success && <p className="text-tock-green mt-2 text-sx">Mint paused.</p>}
+      {success && <p className="text-tock-green mt-2 text-xs">Mint paused.</p>}
     </section>
   );
 }

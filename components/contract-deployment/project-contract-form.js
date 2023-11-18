@@ -113,10 +113,10 @@ export default function ProjectContractForm() {
   }
 
   async function callUpdateProjectContract() {
-    if (success) setSuccess(false);
-    if (failed) setFailed(false);
-    if (pleaseFillRequired) setPleaseFillRequied(false);
-    if (nonZeroSupply) setNonZeroSupply(false);
+    setSuccess(false);
+    setFailed(false);
+    setPleaseFillRequied(false);
+    setNonZeroSupply(false);
     if (tokenName.length == 0 || tokenSymbol.length == 0) {
       if (!pleaseFillRequired) setPleaseFillRequied(true);
       return;
@@ -166,17 +166,17 @@ export default function ProjectContractForm() {
       return;
     }
 
-    if (success) setSuccess(false);
-    if (failed) setFailed(false);
-    if (pleaseFillRequired) setPleaseFillRequied(false);
-    if (nonZeroSupply) setNonZeroSupply(false);
+    setSuccess(false);
+    setFailed(false);
+    setPleaseFillRequied(false);
+    setNonZeroSupply(false);
     if (tokenName.length == 0 || tokenSymbol.length == 0) {
       if (!pleaseFillRequired) setPleaseFillRequied(true);
       return;
     }
     if (totalSupply === 0 || totalSupply === "0") {
       if (!isUnlimited) {
-        if (!nonZeroSupply) setNonZeroSupply(true);
+        setNonZeroSupply(true);
         return;
       }
     }

@@ -27,7 +27,7 @@ export default function AdminMint({ prepareMint }) {
     <div className="w-full">
       <div
         onClick={handleClick}
-        className="flex grow border border-zinc-400 bg-tock-black rounded-2xl p-4 my-4 mx-4 hover:bg-tock-semiblack transition ease-in-out duration-200 cursor-pointer"
+        className="flex grow bg-tock-black rounded-2xl p-4 my-4 mx-4 hover:bg-tock-semiblack hover:ring hover:ring-zinc-600 transition ease-in-out duration-200 cursor-pointer"
       >
         <div className="flex flex-col gap-4 w-full">
           <div className="flex flex-row">
@@ -206,10 +206,15 @@ function MintHandler({ prepareMint }) {
           onClick={() => mint()}
         >
           {!wc.isLoading && !uwt.isLoading && !preparing && (
-            <p className="text-sm">
-              mint {blobs.length} {blobs.length === 1 ? "token" : "tokens"} for
-              Free
-            </p>
+            <div>
+              {blobs.length === 0 && <p>basket is empty</p>}
+              {blobs.length > 0 && (
+                <p className="text-sm">
+                  mint {blobs.length} {blobs.length === 1 ? "token" : "tokens"}{" "}
+                  for Free
+                </p>
+              )}
+            </div>
           )}
           <div>
             {(wc.isLoading || uwt.isLoading || preparing) && (

@@ -14,9 +14,6 @@ export default function page() {
           unlocking onchain possibilities for Web3 & NFT enthusiasts.
         </h1>
       </div>
-      {/* <h1 className="text-zinc-300 mt-4 font-bold text-2xl text-center">
-        power of choice
-      </h1> */}
       <div className="flex flex-col items-center gap-10 md:p-4 justify-center md:flex-row mt-10">
         <div className="border-2 border-tock-orange rounded-xl p-4 w-11/12 md:w-1/2 h-44">
           <h1 className="text-tock-green font-bold text-2xl mb-2">

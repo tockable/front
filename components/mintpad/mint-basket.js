@@ -14,8 +14,8 @@ export default function MintBasket() {
   return (
     <div>
       <div className="mx-4 mt-6">
-        <h1 className="text-tock-blue">
-          your mint basket{" "}
+        <h1 className="text-tock-blue mb-1">
+          basket of tokens to mint{" "}
           <span className="text-zinc-400 text-sm">
             ({blobs.length}/{maxMint})
           </span>
@@ -25,7 +25,7 @@ export default function MintBasket() {
           you can add up to 5 token in a basket
         </p>
       </div>
-      <div className="bg-tock-black border border-zinc-400 rounded-2xl p-4 mx-4 my-2 mb-4 flex flex-wrap justify-center gap-2 items-center">
+      <div className="bg-tock-black rounded-2xl p-4 mx-4 my-2 mb-4 flex flex-wrap justify-center gap-2 items-center">
         {blobs?.map((blob, i) => (
           <div key={"cart_" + i}>
             <img

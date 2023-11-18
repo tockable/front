@@ -36,6 +36,5 @@ export default function ProjectPreview({ project }) {
         </Button>
       </Link>
     </div>
-    // </div>
   );
 }
