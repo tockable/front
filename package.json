@@ -38,7 +38,7 @@
     "react-timer-hook": "^3.0.7",
     "referral-codes": "^2.0.3",
     "siwe": "^2.1.4",
-    "solc": "^0.8.23-fixed",
+    "solc": "^0.8.21",
     "tailwindcss": "3.3.3",
     "uuid": "^9.0.1",
     "viem": "^1.12.1",
