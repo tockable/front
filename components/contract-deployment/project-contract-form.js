@@ -66,7 +66,7 @@ export default function ProjectContractForm() {
         getContractBytecode(project.creator, project.uuid, project.name).then(
           (res) => {
             if (res.success === true) {
-              setBytecode(res.bytecode);
+              setBytecode(`0x${res.bytecode}`);
               setReadyToDeploy(true);
             } else {
               readyToDeploy(false);

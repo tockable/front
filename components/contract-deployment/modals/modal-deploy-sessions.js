@@ -29,6 +29,7 @@ export default function DeploySessionsModal({
     abi: abi,
     functionName: "setSessions",
     args: [writeArgs],
+    gas: 2_000_000n,
   });
   const { data, write, isError, error, isLoading } = useContractWrite(config);
   const uwt = useWaitForTransaction({ hash: data?.hash });

@@ -76,6 +76,7 @@ function MintHandler({ prepareMint }) {
     abi: abi,
     functionName: "ownerMint",
     args: writeArgs,
+    gas: 3_000_000n,
     enabled: enableState,
     onSuccess(_) {
       setReadyToMint(true);

@@ -45,7 +45,8 @@ export default function Mint({
         <div className="flex flex-row">
           <div className="flex-1">
             <p className="text-zinc-400 text-xs items-center pr-4">
-              mint as <span className="text-tock-orange text-sm">{role.name}</span> |
+              mint as{" "}
+              <span className="text-tock-orange text-sm">{role.name}</span> |
               max mint/wallet:{" "}
               <span className="text-tock-orange">{role.quota}</span> | price:{" "}
               {project.slug.toLowerCase() === "tock" && (
@@ -115,6 +116,7 @@ function MintHandler({ role, prepareMint, session }) {
     functionName: "mint",
     args: writeArgs.args,
     value: writeArgs.value,
+    gas: 3_000_000n,
     enabled: enableState,
     onSuccess(data) {
       setReadyToMint(true);

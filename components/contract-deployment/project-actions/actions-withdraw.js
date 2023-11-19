@@ -14,6 +14,7 @@ export default function ActionWithdraw({ abi }) {
     address: project.contractAddress,
     abi: abi,
     functionName: "withdraw",
+    gas: 3_000_000n,
   });
 
   const { data, isLoading, isError, write, error } = useContractWrite(config);

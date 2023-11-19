@@ -30,6 +30,7 @@ export default function DeployRolesModal({
     abi: abi,
     functionName: "setRoles",
     args: [writeArgs],
+    gas: 3_000_000n,
   });
   const { data, write, isError, error, isLoading } = useContractWrite(config);
   const uwt = useWaitForTransaction({ hash: data?.hash });

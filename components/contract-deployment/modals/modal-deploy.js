@@ -2,15 +2,16 @@ import { useState, useRef, useEffect, useContext } from "react";
 import { useAccount } from "wagmi";
 import { getWalletClient, getPublicClient } from "@wagmi/core";
 import { createWalletClient } from "viem";
+import { BrowserProvider, JsonRpcSigner } from "ethers";
 import { TOCKABLE_ADDRESS } from "@/tock.config";
 import { createNewSigner } from "@/actions/signature/createWallet";
 import { updateDeployStatus } from "@/actions/launchpad/projects";
 import { LaunchpadContext } from "@/contexts/project-context";
 import { upddateProjectSigner } from "@/actions/launchpad/projects";
-import { http } from "viem";
 import Modal from "@/components/design/modals/modal";
 import Button from "@/components/design/button/button";
 import Loading from "@/components/loading/loading";
+import { ContractFactory, providers } from "ethers";
 
 export default function DeployContractModal({ onClose, bytecode }) {
   const { project, setProject, abi } = useContext(LaunchpadContext);
@@ -57,20 +58,26 @@ export default function DeployContractModal({ onClose, bytecode }) {
       const client = await getWalletClient({
         chainId: Number(project.chainId),
       });
-      //alternative 2
-      // const client = createWalletClient({
-      //   chain: polygon,
-      //   transport: custom(window.ethereum),
-      // });
-
-      // const [address] = await client.getAddresses();
 
       const hash = await client.deployContract({
         abi,
         bytecode,
         account: address,
         args: [TOCKABLE_ADDRESS, signer],
+        gas: 10_000_000n,
       });
+
+      // alterrnative 2
+      // const { account, chain, transport } = client;
+      // const network = {
+      //   chainId: chain.id,
+      //   name: chain.name,
+      //   ensAddress: chain.contracts?.ensRegistry?.address,
+      // };
+      // const provider = new BrowserProvider(transport, network);
+      // const ethsigner = new JsonRpcSigner(provider, account.address);
+      // const contract = new ContractFactory(abi, bytecode, ethsigner);
+      // await contract.deploy(TOCKABLE_ADDRESS, signer);
 
       if (hash) {
         txhash.current = hash;
@@ -130,6 +137,7 @@ export default function DeployContractModal({ onClose, bytecode }) {
       ) {
         setError("Rejected by user.");
       } else {
+        console.log(err);
         setError("wallet error occured");
       }
       setTakeMoment(false);
