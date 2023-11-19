@@ -32,7 +32,6 @@ export default function CreatorDashboard() {
   const [newPojectModalShow, setNewProjectModelShow] = useState(false);
   const [sessionStatus, setSessionStatus] = useState(null);
   useEffect(() => {
-    console.log(address);
     if (!address) return;
     if (!sessionStatus) return;
     if (

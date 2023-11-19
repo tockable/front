@@ -44,6 +44,7 @@ function compile(_contractName, _project, _buildDirectory) {
         enabled: true,
         runs: 200,
       },
+      evmVersion: "paris",
       outputSelection: {
         "*": {
           "*": ["*"],
