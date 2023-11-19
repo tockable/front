@@ -40,6 +40,10 @@ function compile(_contractName, _project, _buildDirectory) {
     language: "Solidity",
     sources: sources,
     settings: {
+      optimizer: {
+        enabled: true,
+        runs: 200,
+      },
       outputSelection: {
         "*": {
           "*": ["*"],

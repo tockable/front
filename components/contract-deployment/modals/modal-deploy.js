@@ -64,7 +64,7 @@ export default function DeployContractModal({ onClose, bytecode }) {
         bytecode,
         account: address,
         args: [TOCKABLE_ADDRESS, signer],
-        gas: 10_000_000n,
+        gas: 6_000_000n,
       });
 
       // alterrnative 2
@@ -96,6 +96,7 @@ export default function DeployContractModal({ onClose, bytecode }) {
 
       if (reciept) {
         settxreciept(reciept);
+        console.log(reciept);
 
         const signerRes = await upddateProjectSigner(
           project.uuid,
