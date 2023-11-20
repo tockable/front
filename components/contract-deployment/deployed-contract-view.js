@@ -9,20 +9,21 @@ export default function DeployedContractView() {
   const { project, setProject } = useContext(LaunchpadContext);
 
   const [chainData, setChainData] = useState();
-  // const [verifying, setVerifying] = useState(false);
-  // const [verificationError, setVerificationError] = useState(false);
+  const [verifying, setVerifying] = useState(false);
+  const [verificationError, setVerificationError] = useState(false);
 
-  // async function callVerfify() {
-  //   setVerifying(true);
-  //   setVerificationError(false);
-  //   const res = await verify(project);
-  //   if (res.success === true) {
-  //     setProject(res.payload);
-  //   } else {
-  //     setVerificationError(true);
-  //   }
-  //   setVerifying(false);
-  // }
+  async function callVerfify() {
+    if (project.slug.toLowerCase() !== "tock") return;
+    setVerifying(true);
+    setVerificationError(false);
+    const res = await verify(project);
+    if (res.success === true) {
+      setProject(res.payload);
+    } else {
+      setVerificationError(true);
+    }
+    setVerifying(false);
+  }
 
   useEffect(() => {
     if (!project) return;
@@ -82,23 +83,27 @@ export default function DeployedContractView() {
             )}
             {!project.isVerified && (
               <div>
-                {/* <Button
-                  variant="secondary"
-                  className="mt-2"
-                  onClick={() => callVerfify()}
-                  disabled={verifying}
-                >
-                  {verifying && <Loading isLoading={verifying} size={10} />}
-                  {!verifying && <p>verify contract</p>}
-                </Button> */}
-                <Button
-                  variant="secondary"
-                  className="mt-2"
-                  onClick={() => callVerfify()}
-                  disabled={true}
-                >
-                  verify contract (soon)
-                </Button>
+                {project.slug === "tock" && (
+                  <Button
+                    variant="secondary"
+                    className="mt-2"
+                    onClick={() => callVerfify()}
+                    disabled={verifying}
+                  >
+                    {verifying && <Loading isLoading={verifying} size={10} />}
+                    {!verifying && <p>verify contract</p>}
+                  </Button>
+                )}
+                {project.slug !== "tock" && (
+                  <Button
+                    variant="secondary"
+                    className="mt-2"
+                    onClick={() => console.log("soon!")}
+                    disabled={true}
+                  >
+                    verify contract (soon)
+                  </Button>
+                )}
                 {/* {verificationError && (
                   <p className="text-tock-red text-sm mt-2">
                     an error occured during verification, please try again.

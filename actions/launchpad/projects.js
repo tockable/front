@@ -290,10 +290,13 @@ export async function unPublishProject(_uuid, _creator) {
   const projectsPath = getProjectDirectory(_creator);
   const json = fs.readFileSync(projectsPath, { encoding: "utf8" });
   const projects = JSON.parse(json);
+
   const ind = projects.findIndex((p) => p.uuid === _uuid);
+
   if (_creator.toLowerCase() !== projects[ind].creator.toLowerCase()) {
     return { success: false, message: "forbidden" };
   }
+
   try {
     projects[ind].isPublished = false;
     await fs.promises.writeFile(projectsPath, JSON.stringify(projects));
@@ -302,8 +305,8 @@ export async function unPublishProject(_uuid, _creator) {
 
     const json = fs.readFileSync(publishedProjectPath, { encoding: "utf8" });
     const publishedProjects = JSON.parse(json);
-    const publishedInd = projects.findIndex(
-      (p) => p.slug.toLowerCase() === projects.slug.toLowerCase()
+    const publishedInd = publishedProjects.findIndex(
+      (p) => p.slug.toLowerCase() === projects[ind].slug.toLowerCase()
     );
 
     publishedProjects.splice(publishedInd, 1);
@@ -319,6 +322,7 @@ export async function unPublishProject(_uuid, _creator) {
       message: "project successfully unpublished.",
     };
   } catch (err) {
+    console.log(err);
     return { success: false, message: err.message };
   }
 }

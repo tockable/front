@@ -76,13 +76,13 @@ export default function DeploySessionsModal({
                     disabled={isLoading || uwt.isLoading || updating}
                     onClick={() => write?.()}
                   >
-                    {(isLoading || uwt.isLoading) && (
+                    {(isLoading || uwt.isLoading || updating) && (
                       <Loading
                         isLoading={isLoading || uwt.isLoading || updating}
                         size={10}
                       />
                     )}
-                    {!isLoading && !uwt.isLoading && (
+                    {!isLoading && !uwt.isLoading && updating && (
                       <p>sign to deploy sessions</p>
                     )}
                   </Button>

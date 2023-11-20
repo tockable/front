@@ -72,7 +72,7 @@ export default function DeployRolesModal({
                   <Button
                     variant="primary"
                     type="button"
-                    disabled={isLoading || uwt.isLoading}
+                    disabled={isLoading || uwt.isLoading || updating}
                     onClick={() => write?.()}
                   >
                     {(isLoading || uwt.isLoading || updating) && (
@@ -81,7 +81,7 @@ export default function DeployRolesModal({
                         size={10}
                       />
                     )}
-                    {!isLoading && !uwt.isLoading && (
+                    {!isLoading && !uwt.isLoading && !updating && (
                       <p>sign to deploy roles</p>
                     )}
                   </Button>
