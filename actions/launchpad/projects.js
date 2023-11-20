@@ -115,7 +115,6 @@ export async function updateProjectDetails(_creator, _projectDetails, _files) {
         return { success: false, message: "Something wrong with ipfs" };
       }
     }
-
     await fs.promises.writeFile(projectsPath, JSON.stringify(projects));
 
     const slugPath = path.resolve(".", `${DATABASE}/slugs.json`);
@@ -418,7 +417,6 @@ export async function updateProjectMetadata(
       message: "metadata updated successfully",
     };
   } catch (err) {
-    console.log(err);
     return { success: false, message: err.message };
   }
 }

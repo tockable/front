@@ -2,7 +2,6 @@
 //   message:
 //     "By signing this message from tockable.xyz, we make sure that no one is using your dashboard instead of you.",
 //   onSuccess(data) {
-//     console.log(data);
 //     setVerifiedAddress(address);
 //   },
 // });

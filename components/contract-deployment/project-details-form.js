@@ -203,7 +203,6 @@ export default function ProjectDetailsForm() {
       setMustCover(true);
       return;
     }
-
     setSaving(true);
     setSuccess(false);
     setFailed(false);
@@ -215,6 +214,7 @@ export default function ProjectDetailsForm() {
         setSaving(false);
         return;
       }
+
       if (slugRes.duplicate === true) {
         setSlugError(true);
         setErrorMessage("Slug is taken.");
@@ -230,7 +230,6 @@ export default function ProjectDetailsForm() {
     } else {
       files = null;
     }
-
     const projectDetails = {
       uuid: project.uuid,
       name,
@@ -242,7 +241,6 @@ export default function ProjectDetailsForm() {
     };
 
     const res = await updateProjectDetails(address, projectDetails, files);
-
     if (res.success === false) {
       setFailed(true);
       if (res.message === "forbidden") {
@@ -524,7 +522,6 @@ export default function ProjectDetailsForm() {
           Project details successfully updated.
         </p>
       )}
-      {/* <p>{JSON.stringify(updateNeeded())}</p> */}
       {failed && (
         <div className="mt-2 text-xs text-tock-red">{errorMessage}</div>
       )}

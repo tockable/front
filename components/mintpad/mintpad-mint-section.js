@@ -3,7 +3,7 @@ import Mint from "./mint";
 
 export default function MintpadMintSection({ roles, prepareMint, session }) {
   const [states, setStates] = useState({});
-
+  console.log("mint section");
   useEffect(() => {
     if (!roles || roles.length === 0) return;
     const newStates = {};

@@ -93,10 +93,16 @@ export default function DeployContractModal({ onClose, bytecode }) {
       });
 
       const reciept = await publicClient.waitForTransactionReceipt({ hash });
+      
+      if (!reciept) {
+        setTakeMoment(false);
+        setSuccess("");
+        setError("deployment tx failed, please try again.");
+        return;
+      }
 
-      if (reciept) {
+      if (reciept.status == "success") {
         settxreciept(reciept);
-        console.log(reciept);
 
         const signerRes = await upddateProjectSigner(
           project.uuid,
@@ -138,7 +144,6 @@ export default function DeployContractModal({ onClose, bytecode }) {
       ) {
         setError("Rejected by user.");
       } else {
-        console.log(err);
         setError("wallet error occured");
       }
       setTakeMoment(false);

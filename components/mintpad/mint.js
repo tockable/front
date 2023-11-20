@@ -1,4 +1,4 @@
-import { useState, useContext, useEffect } from "react";
+import { useState, useContext, useEffect, useRef } from "react";
 import { parseEther, BaseError, ContractFunctionRevertedError } from "viem";
 import {
   usePrepareContractWrite,
@@ -82,6 +82,7 @@ export default function Mint({
 function MintHandler({ role, prepareMint, session }) {
   const { abi, project, blobs, setDuplicatedIndexes, setSuccessFullyMinted } =
     useContext(MintContext);
+  const success = useRef("");
   const { address } = useAccount();
   const [preparing, setPreparing] = useState(false);
   const [readyToMint, setReadyToMint] = useState(false);
@@ -91,7 +92,7 @@ function MintHandler({ role, prepareMint, session }) {
   const [warning, setWarning] = useState("");
   const [writeArgs, setwriteArgs] = useState(initialArgs);
 
-  const contractRead = useContractRead({
+  const { data, refetch } = useContractRead({
     address: project.contractAddress,
     abi,
     functionName: "getSupplyData",
@@ -100,7 +101,7 @@ function MintHandler({ role, prepareMint, session }) {
   });
 
   useEffect(() => {
-    contractRead.refetch?.();
+    refetch?.();
   }, []);
 
   function resetMint() {
@@ -116,7 +117,7 @@ function MintHandler({ role, prepareMint, session }) {
     functionName: "mint",
     args: writeArgs.args,
     value: writeArgs.value,
-    gas: 3_000_000n,
+    // gas: 3_000_000n,
     enabled: enableState,
     onSuccess(data) {
       setReadyToMint(true);
@@ -149,6 +150,7 @@ function MintHandler({ role, prepareMint, session }) {
         setWarning("");
         setPrintedError("Unknown error occured.");
       }
+      // success.current = "";
       setSuccessFullyMinted(false);
       resetMint();
     },
@@ -160,6 +162,7 @@ function MintHandler({ role, prepareMint, session }) {
   useEffect(() => {
     if (invalidArgs(writeArgs)) {
       setPreparing(false);
+      // success.current = "";
       setSuccessFullyMinted(false);
       return;
     }
@@ -177,7 +180,8 @@ function MintHandler({ role, prepareMint, session }) {
   useEffect(() => {
     if (!uwt.isSuccess) return;
     setSuccessFullyMinted(true);
-    contractRead.refetch?.();
+    // success.current = "all tokens in basket has been successfully minted!";
+    refetch?.();
     resetMint();
     setWarning("");
     setPrintedError("");
@@ -185,6 +189,7 @@ function MintHandler({ role, prepareMint, session }) {
 
   useEffect(() => {
     if (!uwt.isError) return;
+    // success.current = "";
     setSuccessFullyMinted(false);
     setWarning("");
     setPrintedError("Transaction failed.");
@@ -193,6 +198,7 @@ function MintHandler({ role, prepareMint, session }) {
 
   useEffect(() => {
     if (!wc.isError) return;
+    // success.current = "";
     setSuccessFullyMinted(false);
     setWarning("");
     resetMint();
@@ -211,6 +217,7 @@ function MintHandler({ role, prepareMint, session }) {
   }, [wc.isError]);
 
   async function mint() {
+    // success.current = "";
     setSuccessFullyMinted(false);
     if (blobs.length === 0) return;
 
@@ -251,188 +258,164 @@ function MintHandler({ role, prepareMint, session }) {
   }
 
   return (
-    <div className="flex flex-col">
-      <p className="text-zinc-400 text-xs items-center my-2">
-        mint left for wallet on this role:{" "}
-        <span className="text-tock-orange text-sm">
-          {Math.min(
-            parseInt(contractRead?.data[0]),
-            Math.min(
-              parseInt(contractRead?.data[1]),
-              parseInt(contractRead?.data[2])
-            )
-          )}
-        </span>
-      </p>
-      <div className="flex justify-center">
-        {Math.min(
-          parseInt(contractRead?.data[0]),
-          Math.min(
-            parseInt(contractRead?.data[1]),
-            parseInt(contractRead?.data[2])
-          )
-        ) != 0 && (
-          <Button
-            variant="primary"
-            disabled={
-              wc.isLoading ||
-              uwt.isLoading ||
-              preparing ||
-              blobs.length >
-                Math.min(
-                  parseInt(contractRead?.data[0]),
+    <div>
+      {data && (
+        <div className="flex flex-col">
+          <p className="text-zinc-400 text-xs items-center my-2">
+            mint left for wallet on this role:{" "}
+            <span className="text-tock-orange text-sm">
+              {Math.min(
+                parseInt(data[0]),
+                Math.min(parseInt(data[1]), parseInt(data[2]))
+              )}
+            </span>
+          </p>
+          <div className="flex justify-center">
+            {Math.min(
+              parseInt(data[0]),
+              Math.min(parseInt(data[1]), parseInt(data[2]))
+            ) != 0 && (
+              <Button
+                variant="primary"
+                disabled={
+                  wc.isLoading ||
+                  uwt.isLoading ||
+                  preparing ||
+                  blobs.length >
+                    Math.min(
+                      parseInt(data[0]),
+                      Math.min(parseInt(data[1]), parseInt(data[2]))
+                    ) ||
                   Math.min(
-                    parseInt(contractRead?.data[1]),
-                    parseInt(contractRead?.data[2])
-                  )
-                ) ||
-              Math.min(
-                parseInt(contractRead?.data[0]),
-                Math.min(
-                  parseInt(contractRead?.data[1]),
-                  parseInt(contractRead?.data[2])
-                )
-              ) == 0 ||
-              blobs.length === 0
-            }
-            onClick={() => mint()}
-          >
-            {!wc.isLoading && !uwt.isLoading && !preparing && (
-              <div>
-                {blobs.length === 0 && <p>basket is empty</p>}
-                {blobs.length > 0 && (
+                    parseInt(data[0]),
+                    Math.min(parseInt(data[1]), parseInt(data[2]))
+                  ) == 0 ||
+                  blobs.length === 0
+                }
+                onClick={() => mint()}
+              >
+                {!wc.isLoading && !uwt.isLoading && !preparing && (
                   <div>
-                    {project.slug.toLowerCase() !== "tock" && (
-                      <p className="text-sm">
-                        mint {blobs.length}{" "}
-                        {blobs.length === 1 ? "token" : "tokens"} for{" "}
-                        {parseFloat(
-                          (Number(role.price) + project.chainData.base_fee) *
-                            blobs.length
-                        )
-                          .toPrecision(2)
-                          .toString()
-                          .charAt(
-                            parseFloat(
-                              (Number(role.price) +
-                                project.chainData.base_fee) *
-                                blobs.length
-                            )
-                              .toPrecision(2)
-                              .toString().length - 1
-                          ) === "0"
-                          ? parseFloat(
+                    {blobs.length === 0 && <p>basket is empty</p>}
+                    {blobs.length > 0 && (
+                      <div>
+                        {project.slug.toLowerCase() !== "tock" && (
+                          <p className="text-sm">
+                            mint {blobs.length}{" "}
+                            {blobs.length === 1 ? "token" : "tokens"} for{" "}
+                            {parseFloat(
                               (Number(role.price) +
                                 project.chainData.base_fee) *
                                 blobs.length
                             )
                               .toPrecision(2)
                               .toString()
-                              .slice(0, -1)
-                          : parseFloat(
-                              (Number(role.price) +
-                                project.chainData.base_fee) *
-                                blobs.length
-                            )
-                              .toPrecision(2)
-                              .toString()}{" "}
-                        {project.chainData.nativeToken}
-                      </p>
-                    )}
-                    {project.slug.toLowerCase() === "tock" && (
-                      <p className="text-sm">
-                        mint {blobs.length}{" "}
-                        {blobs.length === 1 ? "token" : "tokens"} for Free
-                      </p>
+                              .charAt(
+                                parseFloat(
+                                  (Number(role.price) +
+                                    project.chainData.base_fee) *
+                                    blobs.length
+                                )
+                                  .toPrecision(2)
+                                  .toString().length - 1
+                              ) === "0"
+                              ? parseFloat(
+                                  (Number(role.price) +
+                                    project.chainData.base_fee) *
+                                    blobs.length
+                                )
+                                  .toPrecision(2)
+                                  .toString()
+                                  .slice(0, -1)
+                              : parseFloat(
+                                  (Number(role.price) +
+                                    project.chainData.base_fee) *
+                                    blobs.length
+                                )
+                                  .toPrecision(2)
+                                  .toString()}{" "}
+                            {project.chainData.nativeToken}
+                          </p>
+                        )}
+                        {project.slug.toLowerCase() === "tock" && (
+                          <p className="text-sm">
+                            mint {blobs.length}{" "}
+                            {blobs.length === 1 ? "token" : "tokens"} for Free
+                          </p>
+                        )}
+                      </div>
                     )}
                   </div>
                 )}
-              </div>
+                <div>
+                  {(wc.isLoading || uwt.isLoading || preparing) && (
+                    <Loading
+                      isLoading={wc.isLoading || uwt.isLoading || preparing}
+                      size={10}
+                    />
+                  )}
+                </div>
+              </Button>
             )}
-            <div>
-              {(wc.isLoading || uwt.isLoading || preparing) && (
-                <Loading
-                  isLoading={wc.isLoading || uwt.isLoading || preparing}
-                  size={10}
-                />
-              )}
-            </div>
-          </Button>
-        )}
-      </div>
-      {Math.min(
-        parseInt(contractRead?.data[0]),
-        Math.min(
-          parseInt(contractRead?.data[1]),
-          parseInt(contractRead?.data[2])
-        )
-      ) === 0 && (
-        <p className="text-tock-red text-xs mt-4 border rounded-2xl border-tock-red p-4">
-          currnet wallet does not have any tokens to mint on this role
-        </p>
-      )}
-      {blobs.length >
-        Math.min(
-          parseInt(contractRead?.data[0]),
-          Math.min(
-            parseInt(contractRead?.data[1]),
-            parseInt(contractRead?.data[2])
-          )
-        ) &&
-        Math.min(
-          parseInt(contractRead?.data[0]),
-          Math.min(
-            parseInt(contractRead?.data[1]),
-            parseInt(contractRead?.data[2])
-          )
-        ) !== 0 && (
-          <p className="text-tock-red text-xs mt-2 border rounded-2xl border-zinc-400 p-4">
-            you are elligible to mint{" "}
-            {Math.min(
-              parseInt(contractRead?.data[0]),
-              Math.min(
-                parseInt(contractRead?.data[1]),
-                parseInt(contractRead?.data[2])
-              )
-            )}{" "}
-            max in this role, please consider removing{" "}
-            {blobs.length -
-              Math.min(
-                parseInt(contractRead?.data[0]),
-                Math.min(
-                  parseInt(contractRead?.data[1]),
-                  parseInt(contractRead?.data[2])
-                )
-              )}{" "}
-            {blobs.length -
-              Math.min(
-                parseInt(contractRead?.data[0]),
-                Math.min(
-                  parseInt(contractRead?.data[1]),
-                  parseInt(contractRead?.data[2])
-                )
-              ) ===
-            1
-              ? "token"
-              : "tokens"}{" "}
-            from the basket to enable minting in this role.{" "}
-          </p>
-        )}
-      {printedError.length > 0 && (
-        <p className="text-tock-red text-xs mt-2">{printedError}</p>
-      )}
-      {preparing && (
-        <p className="text-blue-400 text-xs mt-2">
-          preparing basket... please wait...
-        </p>
-      )}
-      {warning.length > 0 && (
-        <p className="text-tock-orange text-xs mt-2">{warning}</p>
-      )}
-      {apiError && (
-        <p className="text-tock-red text-xs mt-2">
-          something went wrong, please try again.
-        </p>
+          </div>
+          {Math.min(
+            parseInt(data[0]),
+            Math.min(parseInt(data[1]), parseInt(data[2]))
+          ) === 0 && (
+            <p className="text-tock-red text-xs mt-4 border rounded-2xl border-tock-red p-4">
+              currnet wallet does not have any tokens to mint on this role
+            </p>
+          )}
+          {blobs.length >
+            Math.min(
+              parseInt(data[0]),
+              Math.min(parseInt(data[1]), parseInt(data[2]))
+            ) &&
+            Math.min(
+              parseInt(data[0]),
+              Math.min(parseInt(data[1]), parseInt(data[2]))
+            ) !== 0 && (
+              <p className="text-tock-red text-xs mt-2 border rounded-2xl border-zinc-400 p-4">
+                you are elligible to mint{" "}
+                {Math.min(
+                  parseInt(data[0]),
+                  Math.min(parseInt(data[1]), parseInt(data[2]))
+                )}{" "}
+                max in this role, please consider removing{" "}
+                {blobs.length -
+                  Math.min(
+                    parseInt(data[0]),
+                    Math.min(parseInt(data[1]), parseInt(data[2]))
+                  )}{" "}
+                {blobs.length -
+                  Math.min(
+                    parseInt(data[0]),
+                    Math.min(parseInt(data[1]), parseInt(data[2]))
+                  ) ===
+                1
+                  ? "token"
+                  : "tokens"}{" "}
+                from the basket to enable minting in this role.{" "}
+              </p>
+            )}
+          {printedError.length > 0 && (
+            <p className="text-tock-red text-xs mt-2">{printedError}</p>
+          )}
+          {preparing && (
+            <p className="text-blue-400 text-xs mt-2">
+              preparing basket... please wait...
+            </p>
+          )}
+          {warning.length > 0 && (
+            <p className="text-tock-orange text-xs mt-2">{warning}</p>
+          )}
+          {apiError && (
+            <p className="text-tock-red text-xs mt-2">
+              something went wrong, please try again.
+            </p>
+          )}
+          {/* <div className="text-tock-green text-xs mt-2">{success.current}</div> */}
+        </div>
       )}
     </div>
   );

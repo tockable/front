@@ -12,6 +12,7 @@ import uploadDirectoryToIpfs from "@/actions/ipfs/uploadDirectory";
 import { updateProjectMetadata } from "@/actions/launchpad/projects";
 import { LaunchpadContext } from "@/contexts/project-context";
 import { hexEncode } from "@/utils/crypto-utils";
+import LabeledInput from "@/components/design/labeled-input/labeled-input";
 import Modal from "@/components/design/modals/modal";
 import Loading from "@/components/loading/loading";
 import Button from "@/components/design/button/button";
@@ -37,6 +38,8 @@ export default function TestAppModal({ onClose, layersFiles, layers }) {
   const [uploaded, setUploaded] = useState(0);
 
   const [hideApp, setHideApp] = useState(false);
+  const [showUploader, setShowUploader] = useState(false);
+  const [showImportSection, setShowImportSection] = useState(false);
   const [errorOnIpfs, setErrorOnIpfs] = useState(false);
   const [successOnIpfs, setSuccessOnIpfs] = useState(false);
   const [traits, setTraits] = useState([]);
@@ -113,7 +116,6 @@ export default function TestAppModal({ onClose, layersFiles, layers }) {
       layerFilesNames,
       sortedCids
     ).then((res) => {
-      console.log(res);
       if (res.success === true) {
         setSuccessOnIpfs(true);
         setProject(res.payload);
@@ -134,8 +136,9 @@ export default function TestAppModal({ onClose, layersFiles, layers }) {
   async function callUploadDirectoryToIpfs() {
     setUploading(true);
 
-    if (!hideApp) setHideApp(true);
-    if (errorOnIpfs) setErrorOnIpfs(false);
+    setHideApp(true);
+    setShowUploader(true);
+    setErrorOnIpfs(false);
 
     let uploadNeaded = true;
     let uploadSuccess = true;
@@ -181,6 +184,10 @@ export default function TestAppModal({ onClose, layersFiles, layers }) {
   function handleClose() {
     resetModal();
     onClose();
+  }
+
+  function handleOpenImportSection() {
+    setShowImportSection(true);
   }
 
   useEffect(() => {
@@ -270,9 +277,11 @@ export default function TestAppModal({ onClose, layersFiles, layers }) {
   async function buildLayers() {
     let tempBuiltLayers = builtLayers;
     const _layersFilesNames = [];
+
     for (let i in layersFiles) {
       const _layerFileNames = [];
       const tempLayer = [];
+
       for (let file of layersFiles[i]) {
         const url = imageUrlFromBlob(file);
         _layerFileNames.push(file.name);
@@ -282,6 +291,7 @@ export default function TestAppModal({ onClose, layersFiles, layers }) {
       _layersFilesNames.push(_layerFileNames);
       tempBuiltLayers[i] = tempLayer;
     }
+
     setLayersFilesNames(_layersFilesNames);
     setBuiltLayers(tempBuiltLayers);
     return { success: true };
@@ -319,17 +329,6 @@ export default function TestAppModal({ onClose, layersFiles, layers }) {
                     </div>
                   </div>
                 )}
-                {/* {successOnIpfs &&
-                  !readyToDeploy && (
-                    <div className="border rounded-2xl bg-tock-black border-zinc-400 p-4 my-4">
-                      <h1 className="text-tock-green font-normal text-lg mb-6">
-                        waiting for deploy...
-                      </h1>
-                      <div className="flex justify-center h-12 mb-8 items-center">
-                        <Loading isLoading={successOnIpfs} size={20} />
-                      </div>
-                    </div>
-                  )} */}
                 {errorOnIpfs && (
                   <IpfsStatus
                     layers={layers}
@@ -545,27 +544,62 @@ export default function TestAppModal({ onClose, layersFiles, layers }) {
                           );
                         })}
                         <p className="text-blue-400 text-xs my-2">
-                          if you are happy with your app, Click on upload &
-                          deploy button. by doing this action, you can store
-                          your images on ipfs and write your traits on the
-                          contract.
+                          if you are happy with your app, use one of following
+                          options to deploy traits on contract.
                         </p>
                         <p className="text-tock-orange text-xs my-2">
                           PLEASE NOTE THAT THIS ACTION IS IRREVERSIBLE.
                         </p>
                         <div>
-                          <Button
-                            variant="secondary"
-                            className="xs:mt-2 mb-4"
-                            type="button"
-                            onClick={() => callUploadDirectoryToIpfs()}
-                            disabled={layersFiles.length == 0 || uploading}
-                          >
-                            {!uploading && <p>upload & deploy</p>}
-                            {uploading && (
-                              <Loading isLoading={uploading} size={10} />
-                            )}
-                          </Button>
+                          <div className="rounded-2xl p-4 w-full border-2 duration-200 ease-in-out border-zinc-600 hover:bg-zinc-700 hover:border-zinc-400">
+                            <h1 className="text-tock-blue text-start mb-2">
+                              I've uploaded my files and have my cids{" "}
+                              <span className="text-tock-green">
+                                (recommended)
+                              </span>
+                            </h1>
+                            <p className="text-sm text-start text-zinc-400">
+                              you can use one of ipfs pinning services like
+                              Pinata, Infura, Nft Storage or Web3 storage,
+                              uploading your layer files using upload directory
+                              (one directory per each layer), and copy/paste
+                              your cids.
+                            </p>
+                            <Button
+                              variant="secondary"
+                              className="xs:mt-2 mb-4"
+                              type="button"
+                              oncClick={handleOpenImportSection}
+                            >
+                              import & deploy
+                            </Button>
+                          </div>
+                          <div className="rounded-2xl p-4 w-full border-2 duration-200 ease-in-out border-zinc-600 hover:bg-zinc-700 hover:border-zinc-400">
+                            <h1 className="text-tock-blue text-start mb-2">
+                              I want to upload using tockable uploader
+                              <span className="text-tock-oragne">
+                                (currently not recommended)
+                              </span>
+                            </h1>
+                            <p className="text-sm text-start text-zinc-400">
+                              you can let tockable to upload your files to Ipfs.
+                              currently, this is an unstable and experimental
+                              feature and not recommended, but we are working
+                              hard on it.
+                            </p>
+                            <Button
+                              variant="secondary"
+                              className="xs:mt-2 mb-4"
+                              type="button"
+                              onClick={() => callUploadDirectoryToIpfs()}
+                              disabled={layersFiles.length == 0 || uploading}
+                            >
+                              {!uploading && <p>upload & deploy</p>}
+                              {uploading && (
+                                <Loading isLoading={uploading} size={10} />
+                              )}
+                            </Button>
+                          </div>
                         </div>
                       </div>
                     )}
@@ -631,4 +665,47 @@ function createTaits(_layers) {
     _traits.push(hex);
   }
   return _traits;
+}
+
+function IpfsInput({ layers }) {
+  const [layerIpfsCids, setLayerIpfsCids] = useState({});
+  const [traits, setTraits] = useState([]);
+
+  function handleIpfsAdd(_index, _cid) {
+    const _layerIpfsCids = layerIpfsCids;
+    _layerIpfsCids[_index] = _cid.trim();
+    setLayerIpfsCids(_layerIpfsCids);
+  }
+
+  async function deploy() {
+    const sortedCids = [];
+    for (let i = 0; i < layerIpfsCids.length; i++) {
+      sortedCids.push(layerIpfsCids[i]);
+    }
+  }
+
+  return (
+    <div>
+      <p className="text-zinc-400 text-sm">
+        please make sure that you input correct cid for each directory, since
+        this action is IRREVERSIBLE after deploying.{" "}
+        <a
+          href="#"
+          target="_blank"
+          rel="noopener noreferer"
+          className="text-blue-400 hover:text-blue-200"
+        >
+          learn how do this correctly
+        </a>
+      </p>
+      {layers.map((layer, i) => (
+        <div key={"layer_ipfs_" + i}>
+          <LabeledInput onChange={handleIpfsAdd(i, e.target.value)}>
+            ipfs cid for <span className="text-toc-orange">{layer}</span>
+          </LabeledInput>
+        </div>
+      ))}
+      <Button />
+    </div>
+  );
 }

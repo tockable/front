@@ -1,4 +1,6 @@
 "use client";
+
+import { useState, useEffect } from "react";
 import "@rainbow-me/rainbowkit/styles.css";
 import {
   getDefaultWallets,
@@ -16,11 +18,14 @@ import {
   baseGoerli,
 } from "wagmi/chains";
 import { publicProvider } from "wagmi/providers/public";
-import { useState, useEffect } from "react";
+import { alchemyProvider } from "wagmi/providers/alchemy";
 
 const { chains, publicClient } = configureChains(
   [mainnet, polygon, optimism, base, zora, polygonMumbai, baseGoerli],
-  [publicProvider()]
+  [
+    alchemyProvider({ apiKey: process.env.NEXT_PUBLIC_ALCHEMY_API_KEY }),
+    publicProvider(),
+  ]
 );
 
 const { connectors } = getDefaultWallets({

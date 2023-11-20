@@ -24,13 +24,12 @@ export default function DeployRolesModal({
   const [failed, setFailed] = useState(false);
   const [updating, setUpdating] = useState(false);
 
-  // console.log(writeArgs);
   const { config } = usePrepareContractWrite({
     address: project.contractAddress,
     abi: abi,
     functionName: "setRoles",
     args: [writeArgs],
-    gas: 3_000_000n,
+    // gas: 3_000_000n,
   });
   const { data, write, isError, error, isLoading } = useContractWrite(config);
   const uwt = useWaitForTransaction({ hash: data?.hash });

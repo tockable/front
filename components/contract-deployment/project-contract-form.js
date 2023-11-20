@@ -34,7 +34,7 @@ export default function ProjectContractForm() {
   const [unlimitedDisabled, setUnlimitedDisabled] = useState(false);
   const [totalSupplyDisabled, setTotalSupplyDisabled] = useState(false);
   const [duplicateVerificationDisable, setDuplicateVerificationDisable] =
-    useState(false);
+    useState(project.duplicateVerification);
   const [abiReady, setAbiReady] = useState(false);
   const [bytecode, setBytecode] = useState("");
   const [readyToDeploy, setReadyToDeploy] = useState(false);

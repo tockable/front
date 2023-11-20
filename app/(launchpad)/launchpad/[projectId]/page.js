@@ -34,7 +34,7 @@ const { chains, publicClient } = configureChains(
     optimismGoerli,
   ],
   [
-    alchemyProvider({ apiKey: "MVCz115Qsc4sCAi0oWh8JDpZc33OQTyp" }),
+    alchemyProvider({ apiKey: process.env.NEXT_PUBLIC_ALCHEMY_API_KEY }),
     publicProvider(),
   ]
 );

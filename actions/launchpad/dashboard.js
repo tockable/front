@@ -35,7 +35,7 @@ function initProject(creator, name, chain, chainId, dropType) {
     cover: null,
     tokenName: "",
     tokenSymbol: "",
-    duplicateVerification: null,
+    duplicateVerification: false,
     firstTokenId: 1,
     roles: [],
     sessions: [],

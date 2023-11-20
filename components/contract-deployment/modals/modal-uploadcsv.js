@@ -26,8 +26,8 @@ export default function UploadCsvModal({ entries, total, onClose, onChange }) {
           complete({ data }) {
             const cleanAddress = [];
             data.flat().forEach((address) => {
-              if (address.match(regex.evmAddress)) {
-                cleanAddress.push(address);
+              if (address.trim().match(regex.evmAddress)) {
+                cleanAddress.push(address.trim());
               }
             });
             onChange(cleanAddress);

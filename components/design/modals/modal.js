@@ -1,25 +1,23 @@
 import { useEffect, useState, useRef } from "react";
+
 export default function Modal({ isOpen, onClose, children, hasClose = true }) {
   const [isModalOpen, setModalOpen] = useState(isOpen);
   const modalRef = useRef(null);
+
   useEffect(() => {
     setModalOpen(isOpen);
   }, [isOpen]);
+
   useEffect(() => {
     const modalElement = modalRef.current;
-
     if (modalElement) {
-      if (isModalOpen) {
-        modalElement.showModal();
-      } else {
-        modalElement.close();
-      }
+      if (isModalOpen) modalElement.showModal();
+      else modalElement.close();
     }
   }, [isModalOpen]);
+
   function handleCloseModal() {
-    if (onClose) {
-      onClose();
-    }
+    if (onClose) onClose();
     setModalOpen(false);
   }
 
@@ -36,7 +34,6 @@ export default function Modal({ isOpen, onClose, children, hasClose = true }) {
           &#x2715;
         </button>
       )}
-
       {children}
     </dialog>
   );

@@ -3,7 +3,7 @@ import { FileUploader } from "react-drag-drop-files";
 import { MAX_LAYERS } from "@/tock.config";
 import { projectImageFileTypes } from "@/constants/constants";
 import NewMetadataModal from "./modals/modal-new-metadata";
-import TestAppModal from "./modals/modal-test-app";
+import AppBuilderModal from "./modals/modal-app-builder";
 import RemoveLayerModal from "./modals/modal-warning";
 import RenameModal from "./modals/modal-rename";
 import Button from "../design/button/button";
@@ -20,7 +20,7 @@ export default function ProjectMetadataFrom() {
   const [imageSizeError, setImageSizeError] = useState(-1);
   // Modals
   const [newMetadataModalShow, setNewMetadataModelShow] = useState(false);
-  const [testAppModalShow, setTestAppModalShow] = useState(false);
+  const [appBuilderModalShow, setAppBuilderModalShow] = useState(false);
   const [showRemoveLayerModal, setShowRemoveLayerModal] = useState(false);
   const [renameModalShow, setRenameModalShow] = useState(false);
 
@@ -42,14 +42,14 @@ export default function ProjectMetadataFrom() {
     setNewMetadataModelShow(false);
   }
 
-  function hanldeOpenTestAppModal() {
+  function handleOpenAppBuilderModal() {
     const emptylayer = layersFiles.find((layer) => layer.length === 0);
     if (emptylayer) {
       setEmptyLayerError(true);
       return;
     }
     if (!emptyLayerError) setEmptyLayerError(false);
-    setTestAppModalShow(true);
+    setAppBuilderModalShow(true);
   }
   function handleSumbitNewLayer(_newLayer) {
     if (layers.length + 1 <= MAX_LAYERS) {
@@ -59,8 +59,8 @@ export default function ProjectMetadataFrom() {
     setNewMetadataModelShow(false);
   }
 
-  function handleCloseTestAppModal() {
-    setTestAppModalShow(false);
+  function handleCloseAppBuilderModal() {
+    setAppBuilderModalShow(false);
   }
 
   // Handle remove layer modal
@@ -127,9 +127,9 @@ export default function ProjectMetadataFrom() {
           onClose={handleCloseNewMetadaModal}
           onSubmit={handleSumbitNewLayer}
         />
-        {testAppModalShow && (
-          <TestAppModal
-            onClose={handleCloseTestAppModal}
+        {appBuilderModalShow && (
+          <AppBuilderModal
+            onClose={handleCloseAppBuilderModal}
             layers={layers}
             layersFiles={layersFiles}
           />
@@ -155,15 +155,15 @@ export default function ProjectMetadataFrom() {
         <h1 className="text-tock-green font-bold text-xl mt-4 mb-6 ">
           add tockable metadata
         </h1>
-        <p className="text-sm text-zinc-400 mb-4">
+        <p className="text-sm text-zinc-200 mb-4">
           Create one layer per desinged trait, then drag & drop the image files
           related to each layer on the related box at once.{" "}
           <a className="font-bold text-sm text-blue-400 hover:text-blue-300 hover:cursor-pointer">
             learn with examples in our guide page.
           </a>
         </p>
-        <p className="text-sm text-zinc-400 mb-10">
-          choose <span className="text-tock-green">related</span> and{" "}
+        <p className="text-xs text-zinc-400 mb-10">
+          NOTE: choose <span className="text-tock-green">related</span> and{" "}
           <span className="text-tock-green">meaningful</span> names for layers
           and your files. These namas will be used to construct token metadata.
         </p>
@@ -194,7 +194,7 @@ export default function ProjectMetadataFrom() {
                 </div>
               </div>
               {layersFiles[i].length > 0 && (
-                <div className="mb-10">
+                <div className="mb-16">
                   <span
                     key={"layer_loadded_" + i}
                     className="text-xs text-zinc-400"
@@ -267,14 +267,14 @@ export default function ProjectMetadataFrom() {
           variant="secondary"
           className="xs:mt-2"
           type="button"
-          onClick={hanldeOpenTestAppModal}
+          onClick={handleOpenAppBuilderModal}
           disabled={layersFiles.length == 0}
         >
-          test app
+          build & test app
         </Button>
         {emptyLayerError && (
-          <p className="text-tock-red text-sm">
-            please delete layers with no image
+          <p className="text-tock-red text-xs mt-2">
+            please fill or delete empty layers
           </p>
         )}
       </form>
