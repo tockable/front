@@ -27,21 +27,23 @@ export default function MintpadProjectDetails({ project }) {
             <MintpadSocialbar project={project} />
           )}
           <article className="text-xs mt-4">
-            <p className="text-zinc-400 my-2">
-              total supply:{" "}
-              <span className="text-tock-orange">
-                {project.isUnlimited ? "unlimited" : project.totalSupply}
-              </span>
-            </p>
+            {project.slug !== "tock" && (
+              <p className="text-zinc-400 my-2">
+                total supply:{" "}
+                <span className="text-tock-orange">
+                  {project.isUnlimited ? "unlimited" : project.totalSupply}
+                </span>
+              </p>
+            )}
             {project.duplicateVerification && (
               <p className="text-zinc-400 my-2">
-                duplicate minting:{" "}
+                ensure unique-ness:{" "}
                 <span className="text-tock-orange">available</span>
               </p>
             )}
             {!project.duplicateVerification && (
               <p className="text-zinc-400 my-2">
-                ensure unique-ness:{" "}
+                duplicate minting:{" "}
                 <span className="text-tock-orange">available</span>
               </p>
             )}

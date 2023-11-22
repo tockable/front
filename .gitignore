@@ -38,11 +38,13 @@ next-env.d.ts
 # dev
 *.test
 test
-database/projects.test
 api/*
 archive
 databasetest
 test12.mjs
 json.txt
+# contracts/*
+# actions/*/*.js
+# database/*
 
 

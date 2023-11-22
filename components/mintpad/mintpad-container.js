@@ -194,32 +194,59 @@ export default function Mintpad({ project, prepareMint, abiAction }) {
               <CountDown variant="end" exts={untilEnd} />
             </div>
           )}
-          {data && (
+          {!isConnected && (
             <div className="my-4 flex flex-col justify-center items-center my-8">
-              <p className="text-tock-blue text-xl font-bold my-2">
-                <span className="font-normal text-zinc-400">status:</span>{" "}
-                {data[0]?.result ? (
-                  <span className="text-tock-green">live</span>
-                ) : (
-                  <span className="text-tock-orange">live</span>
-                )}
+              <p className="text-tock-orange text-xl font-bold my-2">
+                please connect wallet
               </p>
-              {!project.isUnlimited && (
-                <p className="text-tock-blue text-xl font-bold my-2">
-                  <span className="font-normal text-zinc-400">minted:</span>{" "}
-                  {Number(project.totalSupply) - parseInt(data[1].result)} /{" "}
-                  {project.totalSupply}
-                </p>
-              )}
-              {project.isUnlimited && (
-                <p className="text-tock-blue text-xl font-bold my-2">
-                  minted:{" "}
-                  {Number(project.totalSupply) - parseInt(data[1].result)}/
-                  unlimited
-                </p>
-              )}
             </div>
           )}
+
+          {isConnected && chain.id !== Number(project.chainData.chainId) && (
+            <div className="my-4 flex flex-col justify-center items-center my-8">
+              <p className="text-tock-orange text-xl font-bold my-2">
+                please switch network
+              </p>
+
+              <div className="mb-12">
+                <p className="text-tock-orange text-xs text-center">
+                  to see minting options, please switch network to the project
+                  chain
+                </p>
+                <SwitchNetworkButton project={project.chainData} />
+              </div>
+            </div>
+          )}
+
+          {isConnected &&
+            chain.id === Number(project.chainData.chainId) &&
+            data &&
+            !isNaN(parseInt(data[1].result)) && (
+              <div className="my-4 flex flex-col justify-center items-center my-8">
+                <p className="text-tock-blue text-xl font-bold my-2">
+                  <span className="font-normal text-zinc-400">status:</span>{" "}
+                  {data[0]?.result ? (
+                    <span className="text-tock-green">live</span>
+                  ) : (
+                    <span className="text-tock-orange">pause</span>
+                  )}
+                </p>
+                {!project.isUnlimited && project.slug !== "tock" && (
+                  <p className="text-tock-blue text-xl font-bold my-2">
+                    <span className="font-normal text-zinc-400">minted:</span>{" "}
+                    {Number(project.totalSupply) - parseInt(data[1].result)} /{" "}
+                    {project.totalSupply}
+                  </p>
+                )}
+                {project.isUnlimited && (
+                  <p className="text-tock-blue text-xl font-bold my-2">
+                    minted:{" "}
+                    {Number(project.totalSupply) - parseInt(data[1].result)}/
+                    unlimited
+                  </p>
+                )}
+              </div>
+            )}
 
           <div className="flex grow justify-end">
             <ConnectButton />
@@ -232,129 +259,143 @@ export default function Mintpad({ project, prepareMint, abiAction }) {
               cids={project.cids}
             />
             <MintBasket />
-            {chain.id != project.chainData.chainId && (
-              <div className="my-12">
-                <p className="text-tock-orange text-xs text-center">
-                  to see minting options, please switch network to the project
-                  chain
+            {!isConnected && (
+              <div className="p-4">
+                <p className="text-tock-orange p-2 border rounded-xl mt-8 border-tock-orange text-center text-xs">
+                  please connect wallet.
                 </p>
-                <SwitchNetworkButton project={project.chainData} />
               </div>
             )}
-            {chain.id === Number(project.chainData.chainId) && (
+            {isConnected && (
               <div>
-                {!data && isLoading && (
-                  <div className="p-4">
-                    <div className="text-tock-orange text-center p-2 border rounded-xl mt-8 border-zinc-400 text-centerr">
-                      <Loading isLoading={isLoading && !data} size={20} />
-                    </div>
-                  </div>
-                )}
-                {isError && (
-                  <div className="p-4">
-                    <p className="text-tock-red p-2 border rounded-xl mt-8 border-tock-red text-center text-xs">
-                      cannot fetch data form blockchain at this moment. if
-                      problem persists after refreshin the page, please try
-                      again in a couple of minutes.
+                {chain.id != project.chainData.chainId && (
+                  <div className="my-12">
+                    <p className="text-tock-orange text-xs text-center">
+                      to see minting options, please switch network to the
+                      project chain
                     </p>
+                    <SwitchNetworkButton project={project.chainData} />
                   </div>
                 )}
-
-                {data && !isError && (
-                  <div className="p-4">
-                    {(paused || !data[0]?.result) && (
-                      <p className="text-tock-orange mt-4 text-center p-2 border rounded-xl border-tock-orange">
-                        minting is not available at this moment.
-                      </p>
-                    )}
-                  </div>
-                )}
-                {data && !isError && (
+                {chain.id === Number(project.chainData.chainId) && (
                   <div>
-                    {!notStarted &&
-                      !mintEnded &&
-                      (!paused || data[0]?.result) && (
-                        <div>
-                          {!isConnected && (
-                            <p className="text-blue-400 text-xs text-center p-2 mt-8 border rounded-xl border-blue-400">
-                              connect wallet to see mint options
-                            </p>
-                          )}
-                          {errorGettingElligibility && isConnected && (
-                            <p className="text-tock-orange text-xs p-2 border rounded-xl mt-8 border-tock-orange text-center">
-                              Something went wrong, please refresh the page.
-                            </p>
-                          )}
-                          {!errorGettingElligibility && isConnected && (
-                            <div className="w-full">
-                              {!elligibility && (
-                                <div className="p-2 border rounded-xl border-zinc-400">
-                                  <p className="text-tock-orange text-xs text-center">
-                                    no mint plan available for this wallet at
-                                    this moment
-                                  </p>
-                                </div>
+                    {!data && isLoading && (
+                      <div className="p-4">
+                        <div className="text-tock-orange text-center p-2 border rounded-xl mt-8 border-zinc-400 text-centerr">
+                          <Loading isLoading={isLoading && !data} size={20} />
+                        </div>
+                      </div>
+                    )}
+                    {isError && (
+                      <div className="p-4">
+                        <p className="text-tock-red p-2 border rounded-xl mt-8 border-tock-red text-center text-xs">
+                          cannot fetch data form blockchain at this moment. if
+                          problem persists after refreshin the page, please try
+                          again in a couple of minutes.
+                        </p>
+                      </div>
+                    )}
+
+                    {data && !isError && (
+                      <div className="p-4">
+                        {(paused || !data[0]?.result) && (
+                          <p className="text-tock-orange mt-4 text-center p-2 border rounded-xl border-tock-orange">
+                            minting is not available at this moment.
+                          </p>
+                        )}
+                      </div>
+                    )}
+                    {data && !isError && (
+                      <div>
+                        {!notStarted &&
+                          !mintEnded &&
+                          (!paused || data[0]?.result) && (
+                            <div>
+                              {!isConnected && (
+                                <p className="text-blue-400 text-xs text-center p-2 mt-8 border rounded-xl border-blue-400">
+                                  connect wallet to see mint options
+                                </p>
                               )}
-                              {elligibility && (
-                                <div>
-                                  {abi.length > 0 && (
+                              {errorGettingElligibility && isConnected && (
+                                <p className="text-tock-orange text-xs p-2 border rounded-xl mt-8 border-tock-orange text-center">
+                                  Something went wrong, please refresh the page.
+                                </p>
+                              )}
+                              {!errorGettingElligibility && isConnected && (
+                                <div className="w-full">
+                                  {!elligibility && (
+                                    <div className="p-2 border rounded-xl border-zinc-400">
+                                      <p className="text-tock-orange text-xs text-center">
+                                        no mint plan available for this wallet
+                                        at this moment
+                                      </p>
+                                    </div>
+                                  )}
+                                  {elligibility && (
                                     <div>
-                                      {chain.id ===
-                                        Number(project.chainData.chainId) && (
-                                        <div className="w-full mt-8">
-                                          {successfullyMinted && (
-                                            <p className="text-tock-green text-xs mt-2">
-                                              All NFTs in the basket minted
-                                              Successfully!
-                                            </p>
-                                          )}
-                                          {parseInt(data[2].result) > 0 && (
-                                            <div>
-                                              {!publicSession && (
-                                                <p className="text-tock-blue mt-12 mx-4">
-                                                  available roles for you:
+                                      {abi.length > 0 && (
+                                        <div>
+                                          {chain.id ===
+                                            Number(
+                                              project.chainData.chainId
+                                            ) && (
+                                            <div className="w-full mt-8">
+                                              {successfullyMinted && (
+                                                <p className="text-tock-green text-xs mt-2">
+                                                  All NFTs in the basket minted
+                                                  Successfully!
                                                 </p>
                                               )}
+                                              {parseInt(data[2].result) > 0 && (
+                                                <div>
+                                                  {!publicSession && (
+                                                    <p className="text-tock-blue mt-12 mx-4">
+                                                      available roles for you:
+                                                    </p>
+                                                  )}
 
-                                              <MintpadMintSection
-                                                roles={roles}
-                                                session={session}
-                                                prepareMint={prepareMint}
-                                              />
+                                                  <MintpadMintSection
+                                                    roles={roles}
+                                                    session={session}
+                                                    prepareMint={prepareMint}
+                                                  />
+                                                </div>
+                                              )}
+                                              {parseInt(data[2].result) ==
+                                                0 && (
+                                                <p className="mt-8 text-tock-orange text-center p-2 border rounded-xl border-zinc-400">
+                                                  current active session reaches
+                                                  its total supply, please wait
+                                                  until next session.
+                                                </p>
+                                              )}
                                             </div>
-                                          )}
-                                          {parseInt(data[2].result) == 0 && (
-                                            <p className="mt-8 text-tock-orange text-center p-2 border rounded-xl border-zinc-400">
-                                              current active session reaches its
-                                              total supply, please wait until
-                                              next session.
-                                            </p>
                                           )}
                                         </div>
                                       )}
+                                      {abi.length == 0 && (
+                                        <p className="mt-8 text-tock-orange text-center p-2 border rounded-xl border-zinc-400">
+                                          Loading...
+                                        </p>
+                                      )}
                                     </div>
                                   )}
-                                  {abi.length == 0 && (
-                                    <p className="mt-8 text-tock-orange text-center p-2 border rounded-xl border-zinc-400">
-                                      Loading...
+                                  {elligibility === false && (
+                                    <p className="text-tock-orange">
+                                      it seems this wallet is not whitelisted in
+                                      this session
                                     </p>
                                   )}
                                 </div>
                               )}
-                              {elligibility === false && (
-                                <p className="text-tock-orange">
-                                  it seems this wallet is not whitelisted in
-                                  this session
-                                </p>
-                              )}
                             </div>
                           )}
-                        </div>
-                      )}
+                      </div>
+                    )}
+                    {address === project.creator && (
+                      <AdminMint prepareMint={prepareMint} />
+                    )}
                   </div>
-                )}
-                {address === project.creator && (
-                  <AdminMint prepareMint={prepareMint} />
                 )}
               </div>
             )}
